@@ -1,8 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Verstak Capture",
-  "version": "0.1.0",
+  "name": "Verstak Bridge",
+  "version": "2.0.1",
   "description": "Send pages, selections, and links to the local Verstak browser inbox.",
+  "author": "Verstak",
+  "homepage_url": "https://git.mirv.top/verstak/verstak-browser-extension",
   "permissions": ["contextMenus", "storage", "tabs"],
   "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
   "background": {
@@ -10,6 +12,16 @@
   },
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "Verstak Capture"
+    "default_title": "Verstak Bridge",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
 }

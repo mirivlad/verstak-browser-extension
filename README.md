@@ -20,6 +20,32 @@ Build output:
 - `dist/chromium`
 - `dist/firefox`
 
+## Firefox Release
+
+Firefox signing uses `web-ext` and AMO credentials from an env file. The script
+requires `WEB_EXT_API_PROXY`; AMO upload and approval polling run through that
+proxy.
+
+```bash
+VERSTAK_BROWSER_ENV=/home/mirivlad/git/verstak/.env npm run release:firefox
+```
+
+Release output:
+
+- `release/firefox/verstak-firefox-<version>.xpi`
+- `release/firefox/updates.json`
+
+The XPI is signed as an unlisted/self-distributed Firefox extension. Build and
+release artifacts are local outputs and are not committed.
+
+## Manual Check
+
+1. Start Verstak desktop with the `verstak.browser-inbox` plugin installed.
+2. Open the `Browser Inbox` workspace item so it subscribes to capture events.
+3. Install/load `dist/firefox` or the signed XPI in Firefox.
+4. Use the popup `Send Page` action, or use page context menu actions for
+   selection/link captures.
+
 ## Local Receiver Protocol
 
 Default endpoint:

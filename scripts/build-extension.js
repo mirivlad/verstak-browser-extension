@@ -31,6 +31,13 @@ function copyPopup(destRoot) {
   }
 }
 
+function copyIcons(destRoot) {
+  const iconsDir = path.join(shared, 'icons');
+  for (const name of ['icon16.png', 'icon48.png', 'icon128.png']) {
+    copy(path.join(iconsDir, name), path.join(destRoot, 'icons', name));
+  }
+}
+
 rm(dist);
 
 const chromiumDist = path.join(dist, 'chromium');
@@ -43,6 +50,7 @@ concat([
   path.join(shared, 'background.js'),
 ], path.join(chromiumDist, 'background.js'));
 copyPopup(chromiumDist);
+copyIcons(chromiumDist);
 
 const firefoxDist = path.join(dist, 'firefox');
 mkdir(firefoxDist);
@@ -51,5 +59,6 @@ for (const name of ['protocol.js', 'api.js', 'queue.js', 'background.js']) {
   copy(path.join(shared, name), path.join(firefoxDist, name));
 }
 copyPopup(firefoxDist);
+copyIcons(firefoxDist);
 
 console.log('built dist/chromium and dist/firefox');

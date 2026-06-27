@@ -1,14 +1,47 @@
 <!doctype html>
-<html>
+<html lang="ru">
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="popup.css">
   </head>
   <body>
-    <main>
-      <button id="capture-page">Send Page</button>
-      <button id="capture-selection">Send Selection</button>
-      <button id="retry">Retry Pending</button>
+    <main class="root">
+      <header class="header">
+        <div>
+          <h1>Verstak Bridge</h1>
+          <p id="subtitle">Browser Inbox</p>
+        </div>
+        <span id="status-dot" class="dot unknown"></span>
+      </header>
+
+      <section class="panel">
+        <div class="row">
+          <span>Receiver</span>
+          <strong id="receiver-state">Unknown</strong>
+        </div>
+        <div class="row">
+          <span>Pending</span>
+          <strong id="pending-count">0</strong>
+        </div>
+        <div class="row url-row">
+          <span>URL</span>
+          <code id="receiver-url"></code>
+        </div>
+      </section>
+
+      <section class="actions">
+        <button id="capture-page">Send Page</button>
+        <button id="retry">Retry Pending</button>
+      </section>
+
+      <section class="settings">
+        <label for="receiver-input">Receiver URL</label>
+        <input id="receiver-input" type="url" spellcheck="false">
+        <button id="save-settings" class="secondary">Save</button>
+      </section>
+
+      <p class="hint">Selection and link captures are available from the page context menu.</p>
       <p id="status"></p>
     </main>
     <script src="popup.js"></script>

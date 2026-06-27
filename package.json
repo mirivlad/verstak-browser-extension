@@ -1,11 +1,15 @@
 {
   "name": "verstak-browser-extension",
-  "version": "0.1.0",
+  "version": "2.0.1",
   "private": true,
   "description": "Verstak browser capture extension for Chromium and Firefox",
   "scripts": {
     "build": "node scripts/build-extension.js",
-    "test": "node scripts/test-protocol.js"
+    "test": "node scripts/test-protocol.js",
+    "sign:firefox": "./scripts/sign-firefox-xpi.sh",
+    "release:firefox": "./scripts/release-firefox-xpi.sh"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "web-ext": "^8.3.0"
+  }
 }
