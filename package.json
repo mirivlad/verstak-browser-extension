@@ -1,0 +1,11 @@
+{
+  "name": "verstak-browser-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Verstak browser capture extension for Chromium and Firefox",
+  "scripts": {
+    "build": "node scripts/build-extension.js",
+    "test": "node scripts/test-protocol.js"
+  },
+  "devDependencies": {}
+}
