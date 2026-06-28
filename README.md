@@ -57,7 +57,7 @@ POST http://127.0.0.1:47731/api/browser-inbox/v1/captures
 Headers:
 
 - `Content-Type: application/json`
-- `X-Verstak-Receiver-Token: <token>` optional, once pairing is implemented
+- `X-Verstak-Receiver-Token: <token>` required when the desktop receiver is in paired mode
 
 Payload:
 
