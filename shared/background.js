@@ -50,7 +50,8 @@
       fileName: info.fileName || '',
       fileMime: info.fileMime || '',
       fileSize: info.fileSize || 0,
-      fileText: info.fileText || ''
+      fileText: info.fileText || '',
+      fileDataBase64: info.fileDataBase64 || ''
     });
   }
 

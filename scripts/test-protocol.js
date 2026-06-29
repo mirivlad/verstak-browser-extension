@@ -32,16 +32,18 @@ const file = protocol.buildCapture({
   fileName: 'notes.txt',
   fileMime: 'text/plain',
   fileSize: 12,
-  fileText: 'hello file'
+  fileText: 'hello file',
+  fileDataBase64: 'aGVsbG8gZmlsZQ=='
 });
 assert.equal(file.file.name, 'notes.txt');
 assert.equal(file.file.mime, 'text/plain');
 assert.equal(file.file.size, 12);
 assert.equal(file.file.text, 'hello file');
+assert.equal(file.file.dataBase64, 'aGVsbG8gZmlsZQ==');
 assert.equal(protocol.validateCapture(file), true);
 
 assert.throws(() => protocol.validateCapture({ schemaVersion: 1, kind: 'link', captureId: 'x', capturedAt: 'now', page: { url: 'https://example.com' } }), /link.url/);
-assert.throws(() => protocol.validateCapture({ schemaVersion: 1, kind: 'file', captureId: 'x', capturedAt: 'now', page: { url: 'https://example.com' }, file: { name: 'notes.txt' } }), /file.text/);
+assert.throws(() => protocol.validateCapture({ schemaVersion: 1, kind: 'file', captureId: 'x', capturedAt: 'now', page: { url: 'https://example.com' }, file: { name: 'notes.txt' } }), /file.text or file.dataBase64/);
 
 let request;
 const fetchOk = (url, options) => {

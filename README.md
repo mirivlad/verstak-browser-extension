@@ -1,7 +1,7 @@
 # verstak-browser-extension
 
 Verstak Browser Extension captures pages, selected text, links, and selected
-text files and sends them to a local Verstak browser inbox receiver.
+files and sends them to a local Verstak browser inbox receiver.
 
 The extension does not know Notes, Files, Activity, or Journal internals. It
 only sends capture events through the public local receiver protocol. If the
@@ -84,7 +84,8 @@ Supported `kind` values:
 - `page`
 - `selection`, with `selection.text`
 - `link`, with `link.url` and optional `link.text`
-- `file`, with `file.name` and `file.text` for selected text files up to 2 MB
+- `file`, with `file.name` and either `file.dataBase64` for selected files up to
+  8 MB or `file.text` for text-compatible captures
 
 Expected success response:
 

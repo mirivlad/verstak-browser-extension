@@ -4,6 +4,7 @@
   var CAPTURE_SCHEMA_VERSION = 1;
   var DEFAULT_RECEIVER_URL = 'http://127.0.0.1:47731/api/browser-inbox/v1/captures';
   var MAX_FILE_TEXT_LENGTH = 2 * 1024 * 1024;
+  var MAX_FILE_BYTES = 8 * 1024 * 1024;
 
   function nowIso() {
     return new Date().toISOString();
@@ -73,7 +74,8 @@
         name: cleanString(input.fileName || '', 255),
         mime: cleanString(input.fileMime || '', 128),
         size: Number.isFinite(fileSize) && fileSize >= 0 ? fileSize : fileText.length,
-        text: fileText
+        text: fileText,
+        dataBase64: cleanString(input.fileDataBase64 || '', Math.ceil(MAX_FILE_BYTES * 4 / 3) + 4)
       };
     }
     if (input.context) payload.context = input.context;
@@ -90,7 +92,8 @@
     if (payload.kind === 'selection' && (!payload.selection || !payload.selection.text)) throw new Error('selection.text is required');
     if (payload.kind === 'link' && (!payload.link || !payload.link.url)) throw new Error('link.url is required');
     if (payload.kind === 'file' && (!payload.file || !payload.file.name)) throw new Error('file.name is required');
-    if (payload.kind === 'file' && (!payload.file || !payload.file.text)) throw new Error('file.text is required');
+    if (payload.kind === 'file' && Number(payload.file.size || 0) > MAX_FILE_BYTES) throw new Error('file.size exceeds limit');
+    if (payload.kind === 'file' && (!payload.file || (!payload.file.text && !payload.file.dataBase64))) throw new Error('file.text or file.dataBase64 is required');
     return true;
   }
 
@@ -98,6 +101,7 @@
     CAPTURE_SCHEMA_VERSION: CAPTURE_SCHEMA_VERSION,
     DEFAULT_RECEIVER_URL: DEFAULT_RECEIVER_URL,
     MAX_FILE_TEXT_LENGTH: MAX_FILE_TEXT_LENGTH,
+    MAX_FILE_BYTES: MAX_FILE_BYTES,
     buildCapture: buildCapture,
     validateCapture: validateCapture
   };

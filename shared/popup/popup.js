@@ -10,6 +10,24 @@
   var pendingCountEl = document.getElementById('pending-count');
   var statusDotEl = document.getElementById('status-dot');
   var MAX_FILE_TEXT_LENGTH = 2 * 1024 * 1024;
+  var MAX_FILE_BYTES = 8 * 1024 * 1024;
+
+  function arrayBufferToBase64(buffer) {
+    var bytes = new Uint8Array(buffer);
+    var chunkSize = 0x8000;
+    var binary = '';
+    for (var i = 0; i < bytes.length; i += chunkSize) {
+      var chunk = bytes.subarray(i, i + chunkSize);
+      binary += String.fromCharCode.apply(null, chunk);
+    }
+    return btoa(binary);
+  }
+
+  function readOptionalText(file) {
+    if (file.size > MAX_FILE_TEXT_LENGTH) return Promise.resolve('');
+    if (file.type && file.type.indexOf('text/') !== 0 && file.type !== 'application/json') return Promise.resolve('');
+    return file.text().catch(function () { return ''; });
+  }
 
   function setStatus(text) {
     statusEl.textContent = text;
@@ -75,19 +93,21 @@
       setStatus('Choose a text file first');
       return;
     }
-    if (file.size > MAX_FILE_TEXT_LENGTH) {
-      setStatus('File is too large for text capture');
+    if (file.size > MAX_FILE_BYTES) {
+      setStatus('File is too large for browser capture');
       return;
     }
     setStatus('Reading file...');
-    file.text().then(function (content) {
+    Promise.all([file.arrayBuffer(), readOptionalText(file)]).then(function (results) {
+      var content = results[1] || '';
       send({
         type: 'verstak.capture',
         kind: 'file',
         fileName: file.name,
-        fileMime: file.type || 'text/plain',
+        fileMime: file.type || '',
         fileSize: file.size,
-        fileText: content
+        fileText: content,
+        fileDataBase64: arrayBufferToBase64(results[0])
       });
     }).catch(function (err) {
       setStatus(err && err.message ? err.message : String(err));
