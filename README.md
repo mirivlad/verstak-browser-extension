@@ -1,7 +1,7 @@
 # verstak-browser-extension
 
-Verstak Browser Extension captures pages, selected text, and links and sends
-them to a local Verstak browser inbox receiver.
+Verstak Browser Extension captures pages, selected text, links, and selected
+text files and sends them to a local Verstak browser inbox receiver.
 
 The extension does not know Notes, Files, Activity, or Journal internals. It
 only sends capture events through the public local receiver protocol. If the
@@ -43,8 +43,8 @@ release artifacts are local outputs and are not committed.
 1. Start Verstak desktop with the `verstak.browser-inbox` plugin installed.
 2. Open the `Browser Inbox` workspace item so it subscribes to capture events.
 3. Install/load `dist/firefox` or the signed XPI in Firefox.
-4. Use the popup `Send Page` action, or use page context menu actions for
-   selection/link captures.
+4. Use the popup `Send Page` or `Send File` actions, or use page context menu
+   actions for selection/link captures.
 
 ## Local Receiver Protocol
 
@@ -84,6 +84,7 @@ Supported `kind` values:
 - `page`
 - `selection`, with `selection.text`
 - `link`, with `link.url` and optional `link.text`
+- `file`, with `file.name` and `file.text` for selected text files up to 2 MB
 
 Expected success response:
 

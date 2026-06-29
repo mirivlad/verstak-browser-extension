@@ -6,8 +6,10 @@
   var receiverStateEl = document.getElementById('receiver-state');
   var receiverUrlEl = document.getElementById('receiver-url');
   var receiverInputEl = document.getElementById('receiver-input');
+  var fileInputEl = document.getElementById('file-input');
   var pendingCountEl = document.getElementById('pending-count');
   var statusDotEl = document.getElementById('status-dot');
+  var MAX_FILE_TEXT_LENGTH = 2 * 1024 * 1024;
 
   function setStatus(text) {
     statusEl.textContent = text;
@@ -65,6 +67,31 @@
 
   document.getElementById('capture-page').addEventListener('click', function () {
     send({ type: 'verstak.capture', kind: 'page' });
+  });
+
+  document.getElementById('capture-file').addEventListener('click', function () {
+    var file = fileInputEl.files && fileInputEl.files[0];
+    if (!file) {
+      setStatus('Choose a text file first');
+      return;
+    }
+    if (file.size > MAX_FILE_TEXT_LENGTH) {
+      setStatus('File is too large for text capture');
+      return;
+    }
+    setStatus('Reading file...');
+    file.text().then(function (content) {
+      send({
+        type: 'verstak.capture',
+        kind: 'file',
+        fileName: file.name,
+        fileMime: file.type || 'text/plain',
+        fileSize: file.size,
+        fileText: content
+      });
+    }).catch(function (err) {
+      setStatus(err && err.message ? err.message : String(err));
+    });
   });
 
   document.getElementById('retry').addEventListener('click', function () {

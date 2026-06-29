@@ -25,7 +25,23 @@ const selection = protocol.buildCapture({
 assert.equal(selection.selection.text, 'selected text');
 assert.equal(protocol.validateCapture(selection), true);
 
+const file = protocol.buildCapture({
+  kind: 'file',
+  url: 'https://example.com/docs',
+  title: 'Example Docs',
+  fileName: 'notes.txt',
+  fileMime: 'text/plain',
+  fileSize: 12,
+  fileText: 'hello file'
+});
+assert.equal(file.file.name, 'notes.txt');
+assert.equal(file.file.mime, 'text/plain');
+assert.equal(file.file.size, 12);
+assert.equal(file.file.text, 'hello file');
+assert.equal(protocol.validateCapture(file), true);
+
 assert.throws(() => protocol.validateCapture({ schemaVersion: 1, kind: 'link', captureId: 'x', capturedAt: 'now', page: { url: 'https://example.com' } }), /link.url/);
+assert.throws(() => protocol.validateCapture({ schemaVersion: 1, kind: 'file', captureId: 'x', capturedAt: 'now', page: { url: 'https://example.com' }, file: { name: 'notes.txt' } }), /file.text/);
 
 let request;
 const fetchOk = (url, options) => {

@@ -3,6 +3,7 @@
 
   var CAPTURE_SCHEMA_VERSION = 1;
   var DEFAULT_RECEIVER_URL = 'http://127.0.0.1:47731/api/browser-inbox/v1/captures';
+  var MAX_FILE_TEXT_LENGTH = 2 * 1024 * 1024;
 
   function nowIso() {
     return new Date().toISOString();
@@ -16,6 +17,12 @@
 
   function cleanString(value, maxLength) {
     var text = String(value == null ? '' : value).replace(/\s+/g, ' ').trim();
+    if (maxLength && text.length > maxLength) return text.slice(0, maxLength);
+    return text;
+  }
+
+  function cleanTextContent(value, maxLength) {
+    var text = String(value == null ? '' : value);
     if (maxLength && text.length > maxLength) return text.slice(0, maxLength);
     return text;
   }
@@ -59,6 +66,16 @@
         text: cleanString(input.linkText || input.selectionText || '', 512)
       };
     }
+    if (kind === 'file') {
+      var fileText = cleanTextContent(input.fileText || '', MAX_FILE_TEXT_LENGTH);
+      var fileSize = Number(input.fileSize);
+      payload.file = {
+        name: cleanString(input.fileName || '', 255),
+        mime: cleanString(input.fileMime || '', 128),
+        size: Number.isFinite(fileSize) && fileSize >= 0 ? fileSize : fileText.length,
+        text: fileText
+      };
+    }
     if (input.context) payload.context = input.context;
     return payload;
   }
@@ -68,16 +85,19 @@
     if (payload.schemaVersion !== CAPTURE_SCHEMA_VERSION) throw new Error('unsupported schemaVersion');
     if (!payload.captureId) throw new Error('captureId is required');
     if (!payload.capturedAt) throw new Error('capturedAt is required');
-    if (['page', 'selection', 'link'].indexOf(payload.kind) === -1) throw new Error('unsupported kind');
+    if (['page', 'selection', 'link', 'file'].indexOf(payload.kind) === -1) throw new Error('unsupported kind');
     if (!payload.page || !payload.page.url) throw new Error('page.url is required');
     if (payload.kind === 'selection' && (!payload.selection || !payload.selection.text)) throw new Error('selection.text is required');
     if (payload.kind === 'link' && (!payload.link || !payload.link.url)) throw new Error('link.url is required');
+    if (payload.kind === 'file' && (!payload.file || !payload.file.name)) throw new Error('file.name is required');
+    if (payload.kind === 'file' && (!payload.file || !payload.file.text)) throw new Error('file.text is required');
     return true;
   }
 
   var api = {
     CAPTURE_SCHEMA_VERSION: CAPTURE_SCHEMA_VERSION,
     DEFAULT_RECEIVER_URL: DEFAULT_RECEIVER_URL,
+    MAX_FILE_TEXT_LENGTH: MAX_FILE_TEXT_LENGTH,
     buildCapture: buildCapture,
     validateCapture: validateCapture
   };

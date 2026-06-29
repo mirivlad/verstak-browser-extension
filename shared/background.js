@@ -46,7 +46,11 @@
       title: tab && tab.title || '',
       selectionText: info.selectionText || '',
       linkUrl: info.linkUrl || '',
-      linkText: info.selectionText || ''
+      linkText: info.selectionText || '',
+      fileName: info.fileName || '',
+      fileMime: info.fileMime || '',
+      fileSize: info.fileSize || 0,
+      fileText: info.fileText || ''
     });
   }
 
