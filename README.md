@@ -59,6 +59,14 @@ Headers:
 - `Content-Type: application/json`
 - `X-Verstak-Receiver-Token: <token>` required when the desktop receiver is in paired mode
 
+## Pairing
+
+1. In Verstak Desktop, open the Browser Inbox settings panel.
+2. Copy the Receiver URL and Pairing Token.
+3. Paste both values into the extension popup settings and select Save.
+
+Rotating the token in Desktop invalidates the value stored by the extension.
+
 Payload:
 
 ```json

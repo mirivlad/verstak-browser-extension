@@ -6,6 +6,7 @@
   var receiverStateEl = document.getElementById('receiver-state');
   var receiverUrlEl = document.getElementById('receiver-url');
   var receiverInputEl = document.getElementById('receiver-input');
+  var receiverTokenInputEl = document.getElementById('receiver-token-input');
   var fileInputEl = document.getElementById('file-input');
   var pendingCountEl = document.getElementById('pending-count');
   var statusDotEl = document.getElementById('status-dot');
@@ -49,6 +50,9 @@
     receiverUrlEl.textContent = settings.receiverUrl || '';
     if (document.activeElement !== receiverInputEl) {
       receiverInputEl.value = settings.receiverUrl || '';
+    }
+    if (document.activeElement !== receiverTokenInputEl) {
+      receiverTokenInputEl.value = settings.receiverToken || '';
     }
 
     if (reachable === true) {
@@ -120,6 +124,7 @@
 
   document.getElementById('save-settings').addEventListener('click', function () {
     var receiverUrl = receiverInputEl.value.trim();
+    var receiverToken = receiverTokenInputEl.value.trim();
     if (!/^https?:\/\//.test(receiverUrl)) {
       setStatus('Receiver URL must start with http:// or https://');
       return;
@@ -127,7 +132,7 @@
     request({
       type: 'verstak.capture',
       action: 'saveSettings',
-      settings: { receiverUrl: receiverUrl, receiverToken: '' }
+      settings: { receiverUrl: receiverUrl, receiverToken: receiverToken }
     }).then(function (state) {
       render(state);
       setStatus('Saved');
