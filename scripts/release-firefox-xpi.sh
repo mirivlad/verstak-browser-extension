@@ -44,9 +44,9 @@ if [[ -z "$VERSION" || -z "$ADDON_ID" ]]; then
   exit 1
 fi
 
-SIGNED_XPI="$(find "$ARTIFACTS_DIR" -maxdepth 1 -type f -name '*.xpi' | sort | tail -n 1 || true)"
+SIGNED_XPI="$(find "$ARTIFACTS_DIR" -maxdepth 1 -type f -name "*-${VERSION}.xpi" | sort | tail -n 1 || true)"
 if [[ -z "$SIGNED_XPI" ]]; then
-  echo "ERROR: no signed XPI found in $ARTIFACTS_DIR" >&2
+  echo "ERROR: no signed XPI for version $VERSION found in $ARTIFACTS_DIR" >&2
   exit 1
 fi
 

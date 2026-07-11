@@ -84,7 +84,7 @@ echo "Using AMO API proxy from WEB_EXT_API_PROXY"
 
 npx web-ext "${SIGN_ARGS[@]}"
 
-SIGNED_XPI="$(find "$ARTIFACTS_DIR" -maxdepth 1 -type f -name '*.xpi' | sort | tail -n 1 || true)"
+SIGNED_XPI="$(find "$ARTIFACTS_DIR" -maxdepth 1 -type f -name '*.xpi' -printf '%T@ %p\n' | sort -n | tail -n 1 | cut -d' ' -f2- || true)"
 if [[ -z "$SIGNED_XPI" ]]; then
   echo "ERROR: signed XPI was not created in $ARTIFACTS_DIR" >&2
   exit 1
