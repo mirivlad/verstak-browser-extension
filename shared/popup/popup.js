@@ -2,16 +2,90 @@
   'use strict';
 
   var ext = typeof browser !== 'undefined' ? browser : chrome;
+  var i18n = globalThis.VerstakBrowserI18n;
   var statusEl = document.getElementById('status');
   var receiverStateEl = document.getElementById('receiver-state');
   var receiverUrlEl = document.getElementById('receiver-url');
   var receiverInputEl = document.getElementById('receiver-input');
   var receiverTokenInputEl = document.getElementById('receiver-token-input');
+  var languageSelectEl = document.getElementById('language-select');
   var fileInputEl = document.getElementById('file-input');
   var pendingCountEl = document.getElementById('pending-count');
   var statusDotEl = document.getElementById('status-dot');
   var MAX_FILE_TEXT_LENGTH = 2 * 1024 * 1024;
   var MAX_FILE_BYTES = 8 * 1024 * 1024;
+  var catalogs = { en: {}, ru: {} };
+  var currentPreference = 'system';
+  var currentState = {};
+  var t = i18n.createTranslator(catalogs, 'en');
+
+  var staticText = {
+    subtitle: 'popup.subtitle',
+    'receiver-label': 'label.receiver',
+    'pending-label': 'label.pending',
+    'url-label': 'label.url',
+    'file-label': 'label.file',
+    'receiver-url-label': 'label.receiverUrl',
+    'receiver-token-label': 'label.pairingToken',
+    'language-label': 'label.language',
+    'capture-page': 'action.sendPage',
+    'capture-file': 'action.sendFile',
+    retry: 'action.retryPending',
+    'save-settings': 'action.save',
+    'context-menu-hint': 'hint.contextMenu',
+    'language-system-option': 'language.system',
+    'language-en-option': 'language.en',
+    'language-ru-option': 'language.ru'
+  };
+
+  function browserLocale() {
+    try {
+      if (ext.i18n && ext.i18n.getUILanguage) return ext.i18n.getUILanguage();
+    } catch (_) {}
+    return typeof navigator !== 'undefined' ? navigator.language : 'en';
+  }
+
+  function loadCatalogs() {
+    return i18n.loadCatalogs(function (locale) {
+      return fetch(ext.runtime.getURL('locales/' + locale + '.json')).then(function (response) {
+        if (!response.ok) throw new Error('catalog load failed: ' + locale);
+        return response.json();
+      });
+    }).catch(function (error) {
+      console.warn('[verstak] localization catalogs unavailable:', error);
+      return { en: {}, ru: {} };
+    });
+  }
+
+  function applyReceiverState(state) {
+    var reachable = state && state.status && state.status.receiverReachable;
+    if (reachable === true) {
+      receiverStateEl.textContent = t('receiver.online', null, 'Online');
+      receiverStateEl.className = 'online';
+      statusDotEl.className = 'dot online';
+    } else if (reachable === false) {
+      receiverStateEl.textContent = t('receiver.offline', null, 'Offline');
+      receiverStateEl.className = 'offline';
+      statusDotEl.className = 'dot offline';
+    } else {
+      receiverStateEl.textContent = t('receiver.unknown', null, 'Unknown');
+      receiverStateEl.className = '';
+      statusDotEl.className = 'dot unknown';
+    }
+  }
+
+  function applyLocale(preference) {
+    currentPreference = i18n.normalizePreference(preference);
+    var locale = i18n.resolveLocale(currentPreference, browserLocale());
+    t = i18n.createTranslator(catalogs, locale);
+    document.documentElement.lang = locale;
+    languageSelectEl.value = currentPreference;
+    Object.keys(staticText).forEach(function (id) {
+      var element = document.getElementById(id);
+      if (element) element.textContent = t(staticText[id]);
+    });
+    applyReceiverState(currentState);
+  }
 
   function arrayBufferToBase64(buffer) {
     var bytes = new Uint8Array(buffer);
@@ -42,48 +116,58 @@
   }
 
   function render(state) {
-    state = state || {};
-    var settings = state.settings || {};
-    var status = state.status || {};
-    var reachable = status.receiverReachable;
-    pendingCountEl.textContent = String(state.pendingCount || 0);
+    currentState = state || {};
+    var settings = currentState.settings || {};
+    pendingCountEl.textContent = String(currentState.pendingCount || 0);
     receiverUrlEl.textContent = settings.receiverUrl || '';
-    if (document.activeElement !== receiverInputEl) {
-      receiverInputEl.value = settings.receiverUrl || '';
-    }
-    if (document.activeElement !== receiverTokenInputEl) {
-      receiverTokenInputEl.value = settings.receiverToken || '';
-    }
-
-    if (reachable === true) {
-      receiverStateEl.textContent = 'Online';
-      receiverStateEl.className = 'online';
-      statusDotEl.className = 'dot online';
-    } else if (reachable === false) {
-      receiverStateEl.textContent = 'Offline';
-      receiverStateEl.className = 'offline';
-      statusDotEl.className = 'dot offline';
-    } else {
-      receiverStateEl.textContent = 'Unknown';
-      receiverStateEl.className = '';
-      statusDotEl.className = 'dot unknown';
-    }
+    if (document.activeElement !== receiverInputEl) receiverInputEl.value = settings.receiverUrl || '';
+    if (document.activeElement !== receiverTokenInputEl) receiverTokenInputEl.value = settings.receiverToken || '';
+    applyReceiverState(currentState);
   }
 
   function refresh() {
-    return request({ type: 'verstak.capture', action: 'getState' }).then(render).catch(function (err) {
-      setStatus(err && err.message ? err.message : String(err));
+    return request({ type: 'verstak.capture', action: 'getState' }).then(function (state) {
+      render(state);
+      applyLocale(state.settings && state.settings.language || 'system');
+      return state;
+    }).catch(function (error) {
+      setStatus(error && error.message ? error.message : String(error));
+    });
+  }
+
+  function currentSettings() {
+    return {
+      receiverUrl: receiverInputEl.value.trim(),
+      receiverToken: receiverTokenInputEl.value.trim(),
+      language: currentPreference
+    };
+  }
+
+  function saveCurrentSettings(successMessage) {
+    return request({
+      type: 'verstak.capture',
+      action: 'saveSettings',
+      settings: currentSettings()
+    }).then(function (state) {
+      render(state);
+      if (successMessage) setStatus(t('status.saved', null, 'Saved'));
+      return state;
+    }).catch(function (error) {
+      setStatus(error && error.message ? error.message : String(error));
     });
   }
 
   function send(message) {
-    setStatus('Sending...');
+    setStatus(t('status.sending', null, 'Sending...'));
     request(message).then(function (state) {
       render(state);
-      if (state.status && state.status.lastResult === 'queued') setStatus('Queued until Verstak is available');
-      else setStatus('Done');
-    }).catch(function (err) {
-      setStatus(err && err.message ? err.message : String(err));
+      if (state.status && state.status.lastResult === 'queued') {
+        setStatus(t('status.queued', null, 'Queued until Verstak is available'));
+      } else {
+        setStatus(t('status.done', null, 'Done'));
+      }
+    }).catch(function (error) {
+      setStatus(error && error.message ? error.message : String(error));
     });
   }
 
@@ -94,27 +178,26 @@
   document.getElementById('capture-file').addEventListener('click', function () {
     var file = fileInputEl.files && fileInputEl.files[0];
     if (!file) {
-      setStatus('Choose a text file first');
+      setStatus(t('error.chooseFile', null, 'Choose a file first'));
       return;
     }
     if (file.size > MAX_FILE_BYTES) {
-      setStatus('File is too large for browser capture');
+      setStatus(t('error.fileTooLarge', null, 'File is too large for browser capture'));
       return;
     }
-    setStatus('Reading file...');
+    setStatus(t('status.readingFile', null, 'Reading file...'));
     Promise.all([file.arrayBuffer(), readOptionalText(file)]).then(function (results) {
-      var content = results[1] || '';
       send({
         type: 'verstak.capture',
         kind: 'file',
         fileName: file.name,
         fileMime: file.type || '',
         fileSize: file.size,
-        fileText: content,
+        fileText: results[1] || '',
         fileDataBase64: arrayBufferToBase64(results[0])
       });
-    }).catch(function (err) {
-      setStatus(err && err.message ? err.message : String(err));
+    }).catch(function (error) {
+      setStatus(error && error.message ? error.message : String(error));
     });
   });
 
@@ -122,24 +205,22 @@
     send({ type: 'verstak.capture', action: 'retryPending' });
   });
 
-  document.getElementById('save-settings').addEventListener('click', function () {
-    var receiverUrl = receiverInputEl.value.trim();
-    var receiverToken = receiverTokenInputEl.value.trim();
-    if (!/^https?:\/\//.test(receiverUrl)) {
-      setStatus('Receiver URL must start with http:// or https://');
-      return;
-    }
-    request({
-      type: 'verstak.capture',
-      action: 'saveSettings',
-      settings: { receiverUrl: receiverUrl, receiverToken: receiverToken }
-    }).then(function (state) {
-      render(state);
-      setStatus('Saved');
-    }).catch(function (err) {
-      setStatus(err && err.message ? err.message : String(err));
-    });
+  languageSelectEl.addEventListener('change', function () {
+    applyLocale(languageSelectEl.value);
+    saveCurrentSettings(true);
   });
 
-  refresh();
+  document.getElementById('save-settings').addEventListener('click', function () {
+    if (!/^https?:\/\//.test(receiverInputEl.value.trim())) {
+      setStatus(t('error.invalidReceiverUrl', null, 'Receiver URL must start with http:// or https://'));
+      return;
+    }
+    saveCurrentSettings(true);
+  });
+
+  loadCatalogs().then(function (loadedCatalogs) {
+    catalogs = loadedCatalogs;
+    applyLocale('system');
+    return refresh();
+  });
 })();

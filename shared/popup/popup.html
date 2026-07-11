@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,15 +17,15 @@
 
       <section class="panel">
         <div class="row">
-          <span>Receiver</span>
+          <span id="receiver-label">Receiver</span>
           <strong id="receiver-state">Unknown</strong>
         </div>
         <div class="row">
-          <span>Pending</span>
+          <span id="pending-label">Pending</span>
           <strong id="pending-count">0</strong>
         </div>
         <div class="row url-row">
-          <span>URL</span>
+          <span id="url-label">URL</span>
           <code id="receiver-url"></code>
         </div>
       </section>
@@ -37,21 +37,28 @@
       </section>
 
       <section class="file-picker">
-        <label for="file-input">File</label>
+        <label id="file-label" for="file-input">File</label>
         <input id="file-input" type="file">
       </section>
 
       <section class="settings">
-        <label for="receiver-input">Receiver URL</label>
+        <label id="receiver-url-label" for="receiver-input">Receiver URL</label>
         <input id="receiver-input" type="url" spellcheck="false">
-        <label for="receiver-token-input">Pairing token</label>
+        <label id="receiver-token-label" for="receiver-token-input">Pairing token</label>
         <input id="receiver-token-input" type="password" spellcheck="false" autocomplete="off">
+        <label id="language-label" for="language-select">Language</label>
+        <select id="language-select">
+          <option id="language-system-option" value="system">System</option>
+          <option id="language-en-option" value="en">English</option>
+          <option id="language-ru-option" value="ru">Русский</option>
+        </select>
         <button id="save-settings" class="secondary">Save</button>
       </section>
 
-      <p class="hint">Selection and link captures are available from the page context menu.</p>
+      <p id="context-menu-hint" class="hint">Selection and link captures are available from the page context menu.</p>
       <p id="status"></p>
     </main>
+    <script src="../i18n.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

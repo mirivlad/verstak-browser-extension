@@ -126,6 +126,17 @@ input {
   color: #e5e7eb;
 }
 
+select {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 5px;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  padding: 7px 8px;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
 input[type="file"] {
   cursor: pointer;
   font-size: 12px;
