@@ -5,7 +5,7 @@
   "description": "Verstak browser capture extension for Chromium and Firefox",
   "scripts": {
     "build": "node scripts/build-extension.js",
-    "test": "node scripts/test-protocol.js && node scripts/test-popup-settings.js",
+    "test": "node scripts/test-protocol.js && node scripts/test-i18n.js && node scripts/test-popup-settings.js",
     "sign:firefox": "./scripts/sign-firefox-xpi.sh",
     "release:firefox": "./scripts/release-firefox-xpi.sh"
   },
