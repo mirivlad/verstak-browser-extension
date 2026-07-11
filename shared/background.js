@@ -4,20 +4,49 @@
   var ext = typeof browser !== 'undefined' ? browser : chrome;
   var protocol = globalThis.VerstakBrowser;
   var queue = new protocol.CaptureQueue(protocol.browserStorageAdapter(ext));
+  var i18n = globalThis.VerstakBrowserI18n;
   var DEFAULT_SETTINGS = {
     receiverUrl: protocol.DEFAULT_RECEIVER_URL,
-    receiverToken: ''
+    receiverToken: '',
+    language: 'system'
   };
   var STATUS_KEY = 'verstak.status';
+  var localeCatalogs = null;
 
   function getSettings() {
     return ext.storage.local.get('settings').then(function (result) {
-      return Object.assign({}, DEFAULT_SETTINGS, result && result.settings || {});
+      var settings = Object.assign({}, DEFAULT_SETTINGS, result && result.settings || {});
+      settings.language = i18n.normalizePreference(settings.language);
+      return settings;
     });
   }
 
   function saveSettings(settings) {
-    return ext.storage.local.set({ settings: Object.assign({}, DEFAULT_SETTINGS, settings || {}) });
+    settings = Object.assign({}, DEFAULT_SETTINGS, settings || {});
+    settings.language = i18n.normalizePreference(settings.language);
+    return ext.storage.local.set({ settings: settings });
+  }
+
+  function loadLocaleCatalogs() {
+    if (localeCatalogs) return localeCatalogs;
+    localeCatalogs = i18n.loadCatalogs(function (locale) {
+      return fetch(ext.runtime.getURL('locales/' + locale + '.json')).then(function (response) {
+        if (!response.ok) throw new Error('catalog load failed: ' + locale);
+        return response.json();
+      });
+    }).catch(function (error) {
+      console.warn('[verstak] localization catalogs unavailable:', error);
+      return { en: {}, ru: {} };
+    });
+    return localeCatalogs;
+  }
+
+  function browserLocale() {
+    try {
+      return ext.i18n && ext.i18n.getUILanguage ? ext.i18n.getUILanguage() : 'en';
+    } catch (_) {
+      return 'en';
+    }
   }
 
   function setStatus(patch) {
@@ -105,11 +134,18 @@
   }
 
   function setupContextMenus() {
-    if (!ext.contextMenus) return;
-    ext.contextMenus.removeAll(function () {
-      ext.contextMenus.create({ id: 'verstak-capture-page', title: 'Send page to Verstak', contexts: ['page'] });
-      ext.contextMenus.create({ id: 'verstak-capture-selection', title: 'Send selection to Verstak', contexts: ['selection'] });
-      ext.contextMenus.create({ id: 'verstak-capture-link', title: 'Send link to Verstak', contexts: ['link'] });
+    if (!ext.contextMenus) return Promise.resolve();
+    return Promise.all([getSettings(), loadLocaleCatalogs()]).then(function (results) {
+      var locale = i18n.resolveLocale(results[0].language, browserLocale());
+      var t = i18n.createTranslator(results[1], locale);
+      return new Promise(function (resolve) {
+        ext.contextMenus.removeAll(function () {
+          ext.contextMenus.create({ id: 'verstak-capture-page', title: t('context.sendPage', null, 'Send page to Verstak'), contexts: ['page'] });
+          ext.contextMenus.create({ id: 'verstak-capture-selection', title: t('context.sendSelection', null, 'Send selection to Verstak'), contexts: ['selection'] });
+          ext.contextMenus.create({ id: 'verstak-capture-link', title: t('context.sendLink', null, 'Send link to Verstak'), contexts: ['link'] });
+          resolve();
+        });
+      });
     });
   }
 
@@ -128,6 +164,8 @@
     if (message.action === 'getState') return getState();
     if (message.action === 'saveSettings') {
       return saveSettings(message.settings).then(function () {
+        return setupContextMenus();
+      }).then(function () {
         return setStatus({ receiverReachable: null, lastResult: 'settings-saved', lastError: '' });
       }).then(getState);
     }
