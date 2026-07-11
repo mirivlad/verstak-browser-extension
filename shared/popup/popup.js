@@ -82,7 +82,10 @@
     languageSelectEl.value = currentPreference;
     Object.keys(staticText).forEach(function (id) {
       var element = document.getElementById(id);
-      if (element) element.textContent = t(staticText[id]);
+      if (element) {
+        if (element.__verstakI18nFallback == null) element.__verstakI18nFallback = element.textContent;
+        element.textContent = t(staticText[id], null, element.__verstakI18nFallback);
+      }
     });
     applyReceiverState(currentState);
   }
