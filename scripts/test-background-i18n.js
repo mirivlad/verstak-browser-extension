@@ -34,9 +34,9 @@ const browser = {
     },
   },
   contextMenus: {
-    removeAll(callback) {
+    removeAll() {
       menuTitles = [];
-      if (callback) callback();
+      return Promise.resolve();
     },
     create(item) {
       menuTitles.push(item.title);

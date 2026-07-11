@@ -139,12 +139,22 @@
       var locale = i18n.resolveLocale(results[0].language, browserLocale());
       var t = i18n.createTranslator(results[1], locale);
       return new Promise(function (resolve) {
-        ext.contextMenus.removeAll(function () {
+        var created = false;
+        function createMenus() {
+          if (created) return;
+          created = true;
           ext.contextMenus.create({ id: 'verstak-capture-page', title: t('context.sendPage', null, 'Send page to Verstak'), contexts: ['page'] });
           ext.contextMenus.create({ id: 'verstak-capture-selection', title: t('context.sendSelection', null, 'Send selection to Verstak'), contexts: ['selection'] });
           ext.contextMenus.create({ id: 'verstak-capture-link', title: t('context.sendLink', null, 'Send link to Verstak'), contexts: ['link'] });
           resolve();
-        });
+        }
+        var removal;
+        try {
+          removal = ext.contextMenus.removeAll(createMenus);
+        } catch (_) {
+          removal = ext.contextMenus.removeAll();
+        }
+        if (removal && typeof removal.then === 'function') removal.then(createMenus, createMenus);
       });
     });
   }

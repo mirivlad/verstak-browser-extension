@@ -38,6 +38,13 @@ function copyIcons(destRoot) {
   }
 }
 
+function copyLocalization(destRoot) {
+  copy(path.join(shared, 'i18n.js'), path.join(destRoot, 'i18n.js'));
+  for (const locale of ['en', 'ru']) {
+    copy(path.join(shared, 'locales', `${locale}.json`), path.join(destRoot, 'locales', `${locale}.json`));
+  }
+}
+
 rm(dist);
 
 const chromiumDist = path.join(dist, 'chromium');
@@ -47,18 +54,21 @@ concat([
   path.join(shared, 'protocol.js'),
   path.join(shared, 'api.js'),
   path.join(shared, 'queue.js'),
+  path.join(shared, 'i18n.js'),
   path.join(shared, 'background.js'),
 ], path.join(chromiumDist, 'background.js'));
 copyPopup(chromiumDist);
 copyIcons(chromiumDist);
+copyLocalization(chromiumDist);
 
 const firefoxDist = path.join(dist, 'firefox');
 mkdir(firefoxDist);
 copy(path.join(root, 'firefox', 'manifest.json'), path.join(firefoxDist, 'manifest.json'));
-for (const name of ['protocol.js', 'api.js', 'queue.js', 'background.js']) {
+for (const name of ['protocol.js', 'api.js', 'queue.js', 'i18n.js', 'background.js']) {
   copy(path.join(shared, name), path.join(firefoxDist, name));
 }
 copyPopup(firefoxDist);
 copyIcons(firefoxDist);
+copyLocalization(firefoxDist);
 
 console.log('built dist/chromium and dist/firefox');

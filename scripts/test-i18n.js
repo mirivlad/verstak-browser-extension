@@ -33,6 +33,18 @@ assert.strictEqual(tEn('error.value', { error: 'offline' }), 'Error: offline');
 assert.strictEqual(tRu('missing', null, 'Fallback'), 'Fallback');
 assert.strictEqual(tRu('missing.key'), 'missing.key');
 
+const dist = path.join(root, 'dist');
+if (fs.existsSync(dist)) {
+  for (const target of ['chromium', 'firefox']) {
+    for (const relativePath of ['i18n.js', 'locales/en.json', 'locales/ru.json']) {
+      assert.ok(
+        fs.existsSync(path.join(dist, target, relativePath)),
+        `${target} build is missing ${relativePath}`,
+      );
+    }
+  }
+}
+
 i18n.loadCatalogs((locale) => Promise.resolve(locale === 'ru' ? ru : en))
   .then((catalogs) => {
     assert.strictEqual(catalogs.en, en);

@@ -67,6 +67,15 @@ Headers:
 
 Rotating the token in Desktop invalidates the value stored by the extension.
 
+## Language
+
+The popup settings provide a persisted `System / English / Russian` language
+selector. `System` follows the browser UI language: Russian browser locales use
+Russian, and all other locales use English.
+
+The extension and desktop application store their language choices
+independently. Changing one does not change the other.
+
 Payload:
 
 ```json
