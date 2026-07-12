@@ -43,6 +43,14 @@ Publishing requires the existing AMO credentials used for signing and a
 GitHub-authenticated `gh` CLI. It does not use the invalid `mirv.top` update
 endpoint.
 
+## Bootstrap
+
+There is currently no GitHub Release in this repository. After the code change,
+the first `v2.0.2` signed release must be published before shipping a manifest
+that points to `latest/download/updates.json`; until then that URL is a 404.
+The current package, Chromium manifest and Firefox manifest all use version
+`2.0.2`, so the initial tag and XPI asset name are unambiguous.
+
 ## Documentation
 
 The README links users to the GitHub Releases page for downloading the signed
