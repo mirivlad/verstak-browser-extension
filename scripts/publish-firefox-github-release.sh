@@ -7,13 +7,29 @@ cd "$ROOT_DIR"
 REPOSITORY="mirivlad/verstak-browser-extension"
 SOURCE_DIR="${VERSTAK_FIREFOX_SOURCE_DIR:-dist/firefox}"
 RELEASE_DIR="${VERSTAK_FIREFOX_RELEASE_DIR:-release/firefox}"
+GIT_BIN="${GIT_BIN:-git}"
+GH_BIN="${GH_BIN:-gh}"
 
-if ! command -v gh >/dev/null; then
+if ! command -v "$GH_BIN" >/dev/null; then
   echo "ERROR: gh CLI is required to publish a GitHub Release" >&2
   exit 1
 fi
+if [[ "$("$GIT_BIN" branch --show-current)" != "main" ]]; then
+  echo "ERROR: GitHub releases must be published from main" >&2
+  exit 1
+fi
+if [[ -n "$("$GIT_BIN" status --porcelain)" ]]; then
+  echo "ERROR: working tree must be clean before publishing a release" >&2
+  exit 1
+fi
 
-gh auth status
+"$GH_BIN" auth status
+"$GIT_BIN" fetch origin main --tags
+HEAD="$("$GIT_BIN" rev-parse HEAD)"
+if [[ "$HEAD" != "$("$GIT_BIN" rev-parse origin/main)" ]]; then
+  echo "ERROR: local main must match origin/main before publishing a release" >&2
+  exit 1
+fi
 ./scripts/release-firefox-xpi.sh
 
 VERSION="$(node -e "console.log(require('./${SOURCE_DIR}/manifest.json').version)")"
@@ -28,16 +44,26 @@ for artifact in "$XPI" "$UPDATES"; do
   fi
 done
 
-if gh release view "$TAG" --repo "$REPOSITORY" >/dev/null 2>&1; then
-  gh release upload "$TAG" "$XPI" "$UPDATES" --repo "$REPOSITORY" --clobber
+if "$GIT_BIN" rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+  if [[ "$("$GIT_BIN" rev-parse "${TAG}^{commit}")" != "$HEAD" ]]; then
+    echo "ERROR: existing tag $TAG does not point at HEAD" >&2
+    exit 1
+  fi
 else
-  gh release create "$TAG" "$XPI" "$UPDATES" \
+  "$GIT_BIN" tag -a "$TAG" -m "Release $TAG"
+  "$GIT_BIN" push origin "refs/tags/$TAG"
+fi
+
+if "$GH_BIN" release view "$TAG" --repo "$REPOSITORY" >/dev/null 2>&1; then
+  "$GH_BIN" release upload "$TAG" "$XPI" "$UPDATES" --repo "$REPOSITORY" --clobber
+else
+  "$GH_BIN" release create "$TAG" "$XPI" "$UPDATES" \
     --repo "$REPOSITORY" \
     --title "Verstak Browser Extension $VERSION" \
     --generate-notes \
     --latest \
-    --target "$(git rev-parse HEAD)"
+    --verify-tag
 fi
 
 echo "GitHub release:"
-gh release view "$TAG" --repo "$REPOSITORY" --json url --jq .url
+"$GH_BIN" release view "$TAG" --repo "$REPOSITORY" --json url --jq .url

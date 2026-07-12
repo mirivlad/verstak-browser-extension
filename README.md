@@ -55,21 +55,29 @@ Firefox signing uses `web-ext` and AMO credentials from an env file. The script
 requires `WEB_EXT_API_PROXY`; AMO upload and approval polling run through that
 proxy.
 
-Create the signed XPI and publish it, together with `updates.json`, as the
-current GitHub Release:
+Create the signed XPI locally, without publishing it:
 
 ```bash
-VERSTAK_BROWSER_ENV=/path/to/.env npm run publish:firefox
+VERSTAK_BROWSER_ENV=/path/to/.env npm run release:firefox
 ```
 
-The first invocation publishes tag `v2.0.3` and bootstraps the
-`releases/latest/download/updates.json` endpoint. Re-running the command
-replaces those two release assets for the same tag.
-
-To sign and prepare release files locally without changing GitHub:
+Publish the signed XPI and `updates.json` as the current GitHub Release:
 
 ```bash
-VERSTAK_BROWSER_ENV=/home/mirivlad/git/verstak/.env npm run release:firefox
+VERSTAK_BROWSER_ENV=/path/to/.env npm run publish:github
+```
+
+The publisher reads the version from `package.json`. It requires an
+authenticated GitHub CLI, a clean local `main` equal to `origin/main`, and a
+tag pointing at that commit. It creates and pushes the tag if needed, then
+creates or updates the GitHub Release. Re-running it for the same tag replaces
+the XPI and `updates.json` assets. `npm run publish:firefox` remains as a
+compatible alias for the same Firefox publishing flow.
+
+For an explicit version check, pass the current tag after `--`:
+
+```bash
+VERSTAK_BROWSER_ENV=/path/to/.env npm run publish:github -- v2.0.3
 ```
 
 Release output:

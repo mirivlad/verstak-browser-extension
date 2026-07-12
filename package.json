@@ -10,6 +10,7 @@
     "sign:firefox": "./scripts/sign-firefox-xpi.sh",
     "release:firefox": "./scripts/release-firefox-xpi.sh",
     "publish:firefox": "./scripts/publish-firefox-github-release.sh",
+    "publish:github": "./scripts/publish-github-release.sh",
     "release:package": "./scripts/package-release.sh"
   },
   "devDependencies": {

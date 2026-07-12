@@ -35,10 +35,16 @@ assert.equal(
 );
 
 const publisher = fs.readFileSync('scripts/publish-firefox-github-release.sh', 'utf8');
-assert.match(publisher, /gh auth status/);
-assert.match(publisher, /gh release create/);
-assert.match(publisher, /gh release upload/);
+assert.match(publisher, /auth status/);
+assert.match(publisher, /branch --show-current/);
+assert.match(publisher, /tag -a/);
+assert.match(publisher, /push origin/);
+assert.match(publisher, /release create/);
+assert.match(publisher, /release upload/);
 assert.match(publisher, /--clobber/);
 assert.match(publisher, /--latest/);
+
+const genericPublisher = fs.readFileSync('scripts/publish-github-release.sh', 'utf8');
+assert.match(genericPublisher, /publish-firefox-github-release\.sh/);
 
 console.log('Firefox GitHub release metadata tests passed');
