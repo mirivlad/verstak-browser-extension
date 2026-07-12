@@ -1,4 +1,4 @@
-# verstak-browser-extension
+# Verstak Browser Extension
 
 Verstak Browser Extension captures pages, selected text, links, and selected
 files and sends them to a local Verstak browser inbox receiver.
@@ -6,6 +6,8 @@ files and sends them to a local Verstak browser inbox receiver.
 The extension does not know Notes, Files, Activity, or Journal internals. It
 only sends capture events through the public local receiver protocol. If the
 receiver is offline, captures stay in the extension pending queue.
+
+> **Alpha software.** Use with a matching Verstak Desktop alpha release.
 
 ## Build
 
@@ -19,6 +21,23 @@ Build output:
 
 - `dist/chromium`
 - `dist/firefox`
+
+Load `dist/chromium` as an unpacked extension in Chromium-based browsers, or
+load `dist/firefox` temporarily in Firefox during development.
+
+## Passive domain activity
+
+Passive tracking is **off by default**. On first use the extension explains
+what it records; the user must explicitly enable it in extension settings.
+
+When enabled, it observes only the focused browser's active tab and sends
+bounded aggregate intervals as a canonical domain name plus duration. It never
+sends URL paths, page titles, page text, selected text, keystrokes, navigation
+history or inactive-tab time. The settings screen has an exclusion list for
+domains such as `youtube.com` or `x.com`.
+
+Manual “Send page”, selection, link and file actions are separate. They create
+Browser Inbox captures; they do not create a workspace or a journal entry.
 
 ## Firefox Release
 
@@ -37,6 +56,16 @@ Release output:
 
 The XPI is signed as an unlisted/self-distributed Firefox extension. Build and
 release artifacts are local outputs and are not committed.
+
+## Reproducible local package
+
+```bash
+npm run release:package -- v0.1.0-alpha.1
+```
+
+This runs the tests and build, then writes unsigned Chromium and Firefox source
+packages to `release/` with a `SHA256SUMS` file. Use `release:firefox` above
+when an AMO-signed XPI is required.
 
 ## Manual Check
 
@@ -109,3 +138,8 @@ Expected success response:
 ```json
 { "status": "accepted", "captureId": "uuid-or-generated-id" }
 ```
+
+## License
+
+Copyright © 2026 Verstak contributors. Licensed under
+[GNU AGPLv3 or later](LICENSE).
