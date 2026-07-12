@@ -21,4 +21,11 @@ assert.deepEqual(release.updateManifest('verstak-bridge@verstak.app', version, a
   },
 });
 
+const firefoxManifest = require('../firefox/manifest.json');
+assert.equal(firefoxManifest.homepage_url, 'https://github.com/mirivlad/verstak-browser-extension');
+assert.equal(
+  firefoxManifest.browser_specific_settings.gecko.update_url,
+  'https://github.com/mirivlad/verstak-browser-extension/releases/latest/download/updates.json',
+);
+
 console.log('Firefox GitHub release metadata tests passed');

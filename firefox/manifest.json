@@ -4,12 +4,12 @@
   "version": "2.0.2",
   "description": "Send pages, selections, links, and files to the local Verstak browser inbox.",
   "author": "Verstak",
-  "homepage_url": "https://git.mirv.top/verstak/verstak-browser-extension",
+  "homepage_url": "https://github.com/mirivlad/verstak-browser-extension",
   "browser_specific_settings": {
     "gecko": {
       "id": "verstak-bridge@verstak.app",
       "strict_min_version": "115.0",
-      "update_url": "https://mirv.top/verstak/firefox/updates.json",
+      "update_url": "https://github.com/mirivlad/verstak-browser-extension/releases/latest/download/updates.json",
       "data_collection_permissions": {
         "required": ["none"]
       }

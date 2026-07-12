@@ -32,7 +32,6 @@ load_env_file "$ENV_FILE"
 SOURCE_DIR="${VERSTAK_FIREFOX_SOURCE_DIR:-dist/firefox}"
 ARTIFACTS_DIR="${WEB_EXT_ARTIFACTS_DIR:-web-ext-artifacts}"
 RELEASE_DIR="${VERSTAK_FIREFOX_RELEASE_DIR:-release/firefox}"
-UPDATE_BASE_URL="${VERSTAK_FIREFOX_UPDATE_BASE_URL:-https://mirv.top/verstak/firefox}"
 
 ./scripts/sign-firefox-xpi.sh
 
@@ -54,20 +53,8 @@ mkdir -p "$RELEASE_DIR"
 RELEASE_XPI="verstak-firefox-${VERSION}.xpi"
 cp "$SIGNED_XPI" "$RELEASE_DIR/$RELEASE_XPI"
 
-cat > "$RELEASE_DIR/updates.json" <<EOF
-{
-  "addons": {
-    "${ADDON_ID}": {
-      "updates": [
-        {
-          "version": "${VERSION}",
-          "update_link": "${UPDATE_BASE_URL}/${RELEASE_XPI}"
-        }
-      ]
-    }
-  }
-}
-EOF
+node scripts/firefox-github-release.js write-updates \
+  "$ADDON_ID" "$VERSION" "$RELEASE_XPI" "$RELEASE_DIR/updates.json"
 
 echo "Firefox release artifacts:"
 echo "$RELEASE_DIR/$RELEASE_XPI"
