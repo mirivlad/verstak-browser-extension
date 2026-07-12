@@ -22,10 +22,10 @@ Each release uploads two assets:
 - `updates.json`, whose `update_link` points to that same release tag's XPI
   asset.
 
-For version `2.0.2`, the versioned link is:
+For version `2.0.3`, the versioned link is:
 
 ```text
-https://github.com/mirivlad/verstak-browser-extension/releases/download/v2.0.2/verstak-firefox-2.0.2.xpi
+https://github.com/mirivlad/verstak-browser-extension/releases/download/v2.0.3/verstak-firefox-2.0.3.xpi
 ```
 
 The stable `latest/download` endpoint lets already installed extensions discover
@@ -46,10 +46,10 @@ endpoint.
 ## Bootstrap
 
 There is currently no GitHub Release in this repository. After the code change,
-the first `v2.0.2` signed release must be published before shipping a manifest
+the first `v2.0.3` signed release must be published before shipping a manifest
 that points to `latest/download/updates.json`; until then that URL is a 404.
 The current package, Chromium manifest and Firefox manifest all use version
-`2.0.2`, so the initial tag and XPI asset name are unambiguous.
+`2.0.3`, so the initial tag and XPI asset name are unambiguous.
 
 ## Documentation
 

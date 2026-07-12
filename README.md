@@ -62,7 +62,7 @@ current GitHub Release:
 VERSTAK_BROWSER_ENV=/path/to/.env npm run publish:firefox
 ```
 
-The first invocation publishes tag `v2.0.2` and bootstraps the
+The first invocation publishes tag `v2.0.3` and bootstraps the
 `releases/latest/download/updates.json` endpoint. Re-running the command
 replaces those two release assets for the same tag.
 

@@ -2,27 +2,32 @@
 const assert = require('assert');
 const fs = require('fs');
 const release = require('./firefox-github-release');
+const packageManifest = require('../package.json');
+const chromiumManifest = require('../chromium/manifest.json');
+const firefoxManifest = require('../firefox/manifest.json');
 
-const version = '2.0.2';
-const asset = 'verstak-firefox-2.0.2.xpi';
+const version = '2.0.3';
+const asset = 'verstak-firefox-2.0.3.xpi';
 
-assert.equal(release.releaseTag(version), 'v2.0.2');
+assert.equal(packageManifest.version, version);
+assert.equal(chromiumManifest.version, version);
+assert.equal(firefoxManifest.version, version);
+assert.equal(release.releaseTag(version), 'v2.0.3');
 assert.equal(
   release.releaseAssetURL(version, asset),
-  'https://github.com/mirivlad/verstak-browser-extension/releases/download/v2.0.2/verstak-firefox-2.0.2.xpi',
+  'https://github.com/mirivlad/verstak-browser-extension/releases/download/v2.0.3/verstak-firefox-2.0.3.xpi',
 );
 assert.deepEqual(release.updateManifest('verstak-bridge@verstak.app', version, asset), {
   addons: {
     'verstak-bridge@verstak.app': {
       updates: [{
-        version: '2.0.2',
-        update_link: 'https://github.com/mirivlad/verstak-browser-extension/releases/download/v2.0.2/verstak-firefox-2.0.2.xpi',
+        version: '2.0.3',
+        update_link: 'https://github.com/mirivlad/verstak-browser-extension/releases/download/v2.0.3/verstak-firefox-2.0.3.xpi',
       }],
     },
   },
 });
 
-const firefoxManifest = require('../firefox/manifest.json');
 assert.equal(firefoxManifest.homepage_url, 'https://github.com/mirivlad/verstak-browser-extension');
 assert.equal(
   firefoxManifest.browser_specific_settings.gecko.update_url,
