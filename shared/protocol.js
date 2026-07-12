@@ -29,11 +29,9 @@
   }
 
   function hostname(url) {
-    try {
-      return new URL(url).hostname;
-    } catch (_) {
-      return '';
-    }
+    return root.VerstakBrowser.normalizeURLHostnameV1
+      ? root.VerstakBrowser.normalizeURLHostnameV1(url)
+      : '';
   }
 
   function buildCapture(input) {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const assert = require('assert');
 
+require('../shared/hostname');
 const protocol = require('../shared/protocol');
 require('../shared/api');
 const queueApi = require('../shared/queue');

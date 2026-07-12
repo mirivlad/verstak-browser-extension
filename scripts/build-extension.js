@@ -51,6 +51,7 @@ const chromiumDist = path.join(dist, 'chromium');
 mkdir(chromiumDist);
 copy(path.join(root, 'chromium', 'manifest.json'), path.join(chromiumDist, 'manifest.json'));
 concat([
+  path.join(shared, 'hostname.js'),
   path.join(shared, 'protocol.js'),
   path.join(shared, 'api.js'),
   path.join(shared, 'queue.js'),
@@ -64,7 +65,7 @@ copyLocalization(chromiumDist);
 const firefoxDist = path.join(dist, 'firefox');
 mkdir(firefoxDist);
 copy(path.join(root, 'firefox', 'manifest.json'), path.join(firefoxDist, 'manifest.json'));
-for (const name of ['protocol.js', 'api.js', 'queue.js', 'i18n.js', 'background.js']) {
+for (const name of ['hostname.js', 'protocol.js', 'api.js', 'queue.js', 'i18n.js', 'background.js']) {
   copy(path.join(shared, name), path.join(firefoxDist, name));
 }
 copyPopup(firefoxDist);
