@@ -3,6 +3,7 @@
 
   var CAPTURE_SCHEMA_VERSION = 1;
   var DEFAULT_RECEIVER_URL = 'http://127.0.0.1:47731/api/browser-inbox/v1/captures';
+  var DEFAULT_ACTIVITY_URL = 'http://127.0.0.1:47731/api/browser-activity/v1/batches';
   var MAX_FILE_TEXT_LENGTH = 2 * 1024 * 1024;
   var MAX_FILE_BYTES = 8 * 1024 * 1024;
 
@@ -98,6 +99,7 @@
   var api = {
     CAPTURE_SCHEMA_VERSION: CAPTURE_SCHEMA_VERSION,
     DEFAULT_RECEIVER_URL: DEFAULT_RECEIVER_URL,
+    DEFAULT_ACTIVITY_URL: DEFAULT_ACTIVITY_URL,
     MAX_FILE_TEXT_LENGTH: MAX_FILE_TEXT_LENGTH,
     MAX_FILE_BYTES: MAX_FILE_BYTES,
     buildCapture: buildCapture,

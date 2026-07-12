@@ -52,12 +52,37 @@ const fetchOk = (url, options) => {
   return Promise.resolve({ status: 202, json: () => Promise.resolve({ status: 'accepted' }) });
 };
 
+const activityBatch = {
+  schemaVersion: 1,
+  batchId: 'activity-batch-id',
+  createdAt: '2026-07-12T10:05:00.000Z',
+  source: 'verstak-browser-extension',
+  entries: [{
+    hostname: 'example.com',
+    startedAt: '2026-07-12T10:00:00.000Z',
+    endedAt: '2026-07-12T10:05:00.000Z',
+    durationSeconds: 300,
+    url: 'https://must-not-be-sent.example'
+  }]
+};
+
 globalThis.VerstakBrowser.sendCapture('http://127.0.0.1:47731/api/browser-inbox/v1/captures', 'token', page, fetchOk)
   .then((result) => {
     assert.equal(result.status, 'accepted');
     assert.equal(request.url, 'http://127.0.0.1:47731/api/browser-inbox/v1/captures');
     assert.equal(request.options.headers['X-Verstak-Receiver-Token'], 'token');
     assert.equal(JSON.parse(request.options.body).captureId, 'test-capture-id');
+  })
+  .then(() => {
+    return globalThis.VerstakBrowser.sendActivityBatch('http://127.0.0.1:47731/api/browser-inbox/v1/captures', 'token', activityBatch, fetchOk)
+      .then((result) => {
+        assert.equal(result.status, 'accepted');
+        assert.equal(request.url, 'http://127.0.0.1:47731/api/browser-activity/v1/batches');
+        const body = JSON.parse(request.options.body);
+        assert.equal(body.batchId, 'activity-batch-id');
+        assert.equal(body.entries[0].hostname, 'example.com');
+        assert.equal(Object.prototype.hasOwnProperty.call(body.entries[0], 'url'), false);
+      });
   })
   .then(() => {
     const queue = new queueApi.CaptureQueue(queueApi.createMemoryStorage());

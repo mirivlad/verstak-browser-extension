@@ -126,6 +126,19 @@ input {
   color: #e5e7eb;
 }
 
+textarea {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 5px;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  padding: 7px 8px;
+  resize: vertical;
+  background: #0f172a;
+  color: #e5e7eb;
+  font: inherit;
+}
+
 select {
   box-sizing: border-box;
   width: 100%;
@@ -140,6 +153,23 @@ select {
 input[type="file"] {
   cursor: pointer;
   font-size: 12px;
+}
+
+.tracking-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #e8ecf3 !important;
+  cursor: pointer;
+}
+
+.tracking-toggle input {
+  width: auto;
+  margin: 0;
+}
+
+.tracking-settings .hint {
+  margin: 8px 0 4px;
 }
 
 .hint {

@@ -24,6 +24,10 @@
           <span id="pending-label">Pending</span>
           <strong id="pending-count">0</strong>
         </div>
+        <div class="row">
+          <span id="activity-pending-label">Activity batches</span>
+          <strong id="activity-pending-count">0</strong>
+        </div>
         <div class="row url-row">
           <span id="url-label">URL</span>
           <code id="receiver-url"></code>
@@ -53,6 +57,16 @@
           <option id="language-ru-option" value="ru">Русский</option>
         </select>
         <button id="save-settings" class="secondary">Save</button>
+      </section>
+
+      <section class="settings tracking-settings">
+        <label class="tracking-toggle" for="passive-activity-enabled">
+          <input id="passive-activity-enabled" type="checkbox">
+          <span id="passive-activity-label">Track active domain time</span>
+        </label>
+        <p id="passive-activity-disclosure" class="hint">Optional. Collects only the active domain and time spent there. It never sends page URLs, titles, text, keystrokes, or page contents.</p>
+        <label id="passive-activity-exclusions-label" for="passive-activity-exclusions">Excluded domains</label>
+        <textarea id="passive-activity-exclusions" rows="3" spellcheck="false" placeholder="youtube.com"></textarea>
       </section>
 
       <p id="context-menu-hint" class="hint">Selection and link captures are available from the page context menu.</p>

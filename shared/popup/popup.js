@@ -11,7 +11,10 @@
   var languageSelectEl = document.getElementById('language-select');
   var fileInputEl = document.getElementById('file-input');
   var pendingCountEl = document.getElementById('pending-count');
+  var pendingActivityCountEl = document.getElementById('activity-pending-count');
   var statusDotEl = document.getElementById('status-dot');
+  var passiveActivityEnabledEl = document.getElementById('passive-activity-enabled');
+  var passiveActivityExclusionsEl = document.getElementById('passive-activity-exclusions');
   var MAX_FILE_TEXT_LENGTH = 2 * 1024 * 1024;
   var MAX_FILE_BYTES = 8 * 1024 * 1024;
   var catalogs = { en: {}, ru: {} };
@@ -23,6 +26,7 @@
     subtitle: 'popup.subtitle',
     'receiver-label': 'label.receiver',
     'pending-label': 'label.pending',
+    'activity-pending-label': 'label.activityPending',
     'url-label': 'label.url',
     'file-label': 'label.file',
     'receiver-url-label': 'label.receiverUrl',
@@ -35,7 +39,10 @@
     'context-menu-hint': 'hint.contextMenu',
     'language-system-option': 'language.system',
     'language-en-option': 'language.en',
-    'language-ru-option': 'language.ru'
+    'language-ru-option': 'language.ru',
+    'passive-activity-label': 'label.passiveActivity',
+    'passive-activity-disclosure': 'hint.passiveActivityDisclosure',
+    'passive-activity-exclusions-label': 'label.passiveActivityExclusions'
   };
 
   function browserLocale() {
@@ -122,9 +129,16 @@
     currentState = state || {};
     var settings = currentState.settings || {};
     pendingCountEl.textContent = String(currentState.pendingCount || 0);
+    pendingActivityCountEl.textContent = String(currentState.pendingActivityCount || 0);
     receiverUrlEl.textContent = settings.receiverUrl || '';
     if (document.activeElement !== receiverInputEl) receiverInputEl.value = settings.receiverUrl || '';
     if (document.activeElement !== receiverTokenInputEl) receiverTokenInputEl.value = settings.receiverToken || '';
+    passiveActivityEnabledEl.checked = settings.passiveActivityEnabled === true;
+    if (document.activeElement !== passiveActivityExclusionsEl) {
+      passiveActivityExclusionsEl.value = Array.isArray(settings.passiveActivityExcludedDomains)
+        ? settings.passiveActivityExcludedDomains.join('\n')
+        : '';
+    }
     applyReceiverState(currentState);
   }
 
@@ -142,7 +156,11 @@
     return {
       receiverUrl: receiverInputEl.value.trim(),
       receiverToken: receiverTokenInputEl.value.trim(),
-      language: currentPreference
+      language: currentPreference,
+      passiveActivityEnabled: passiveActivityEnabledEl.checked === true,
+      passiveActivityExcludedDomains: passiveActivityExclusionsEl.value.split(/[\n,]/).map(function (value) {
+        return value.trim();
+      }).filter(Boolean)
     };
   }
 

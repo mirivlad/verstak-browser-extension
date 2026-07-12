@@ -49,7 +49,13 @@ const browser = {
     onMessage: { addListener(listener) { messageListener = listener; } },
   },
   i18n: { getUILanguage() { return 'en-US'; } },
-  tabs: { query() { return Promise.resolve([]); } },
+  tabs: {
+    query() { return Promise.resolve([{ id: 7, windowId: 1, url: 'https://example.com/private-path', title: 'Private title' }]); },
+    get() { return Promise.resolve({ id: 7, windowId: 1, url: 'https://example.com/private-path', title: 'Private title' }); },
+    onActivated: { addListener() {} },
+    onUpdated: { addListener() {} },
+    onRemoved: { addListener() {} },
+  },
 };
 
 function fetchCatalog(url) {
@@ -69,7 +75,7 @@ const context = vm.createContext({
   clearTimeout,
 });
 context.globalThis = context;
-for (const file of ['protocol.js', 'api.js', 'queue.js', 'i18n.js', 'background.js']) {
+for (const file of ['hostname.js', 'activity-tracker.js', 'protocol.js', 'api.js', 'queue.js', 'i18n.js', 'background.js']) {
   vm.runInContext(fs.readFileSync(path.join(root, 'shared', file), 'utf8'), context, { filename: file });
 }
 
@@ -91,6 +97,22 @@ function sendMessage(message) {
     'Отправить выделение в Верстак',
     'Отправить ссылку в Верстак',
   ]);
+
+  const trackingState = await sendMessage({
+    type: 'verstak.capture',
+    action: 'saveSettings',
+    settings: {
+      receiverUrl: state.settings.receiverUrl,
+      receiverToken: state.settings.receiverToken,
+      language: 'en',
+      passiveActivityEnabled: true,
+      passiveActivityExcludedDomains: [],
+    },
+  });
+  assert.strictEqual(trackingState.settings.passiveActivityEnabled, true);
+  assert.ok(trackingState.activityState.activeAccumulator['example.com']);
+  assert.equal(JSON.stringify(trackingState.activityState).includes('private-path'), false);
+  assert.equal(JSON.stringify(trackingState.activityState).includes('Private title'), false);
 
   const nextState = await sendMessage({
     type: 'verstak.capture',

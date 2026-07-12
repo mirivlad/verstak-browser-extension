@@ -4,19 +4,34 @@
   var ext = typeof browser !== 'undefined' ? browser : chrome;
   var protocol = globalThis.VerstakBrowser;
   var queue = new protocol.CaptureQueue(protocol.browserStorageAdapter(ext));
+  var activityTracker = new protocol.DomainActivityTracker(
+    protocol.browserActivityStorageAdapter(ext),
+    function (batch) {
+      return getSettings().then(function (settings) {
+        return protocol.sendActivityBatch(settings.receiverUrl, settings.receiverToken, batch);
+      });
+    }
+  );
   var i18n = globalThis.VerstakBrowserI18n;
   var DEFAULT_SETTINGS = {
     receiverUrl: protocol.DEFAULT_RECEIVER_URL,
     receiverToken: '',
-    language: 'system'
+    language: 'system',
+    passiveActivityEnabled: false,
+    passiveActivityExcludedDomains: []
   };
   var STATUS_KEY = 'verstak.status';
+  var ACTIVITY_FLUSH_ALARM = 'verstak-domain-activity-flush';
   var localeCatalogs = null;
+  var focusedWindowID = null;
+  var activeTabID = null;
 
   function getSettings() {
     return ext.storage.local.get('settings').then(function (result) {
       var settings = Object.assign({}, DEFAULT_SETTINGS, result && result.settings || {});
       settings.language = i18n.normalizePreference(settings.language);
+      settings.passiveActivityEnabled = settings.passiveActivityEnabled === true;
+      settings.passiveActivityExcludedDomains = normalizeExcludedDomains(settings.passiveActivityExcludedDomains);
       return settings;
     });
   }
@@ -24,7 +39,21 @@
   function saveSettings(settings) {
     settings = Object.assign({}, DEFAULT_SETTINGS, settings || {});
     settings.language = i18n.normalizePreference(settings.language);
+    settings.passiveActivityEnabled = settings.passiveActivityEnabled === true;
+    settings.passiveActivityExcludedDomains = normalizeExcludedDomains(settings.passiveActivityExcludedDomains);
     return ext.storage.local.set({ settings: settings });
+  }
+
+  function normalizeExcludedDomains(value) {
+    var values = Array.isArray(value) ? value : String(value || '').split(/[\n,]/);
+    var seen = {};
+    return values.map(function (item) {
+      return protocol.normalizeHostnameV1(String(item || '').trim());
+    }).filter(function (item) {
+      if (!item || seen[item]) return false;
+      seen[item] = true;
+      return true;
+    });
   }
 
   function loadLocaleCatalogs() {
@@ -66,6 +95,58 @@
     return ext.tabs.query({ active: true, currentWindow: true }).then(function (tabs) {
       return tabs && tabs[0] || {};
     });
+  }
+
+  function isFocusedWindow(windowID) {
+    return focusedWindowID == null || focusedWindowID === windowID;
+  }
+
+  function trackTab(tab, settings) {
+    if (!settings.passiveActivityEnabled || !tab || !isFocusedWindow(tab.windowId)) {
+      return activityTracker.setActiveHostname('', false);
+    }
+    activeTabID = tab.id == null ? activeTabID : tab.id;
+    var hostname = protocol.normalizeURLHostnameV1(tab.url || '');
+    if (!hostname || protocol.isExcludedHostname(hostname, settings.passiveActivityExcludedDomains)) {
+      return activityTracker.setActiveHostname('', false);
+    }
+    return activityTracker.setActiveHostname(hostname, true);
+  }
+
+  function refreshFocusedTab(settings) {
+    return activeTab().then(function (tab) {
+      return trackTab(tab, settings);
+    }).catch(function () {
+      return activityTracker.setActiveHostname('', false);
+    });
+  }
+
+  function configurePassiveActivity(settings) {
+    return activityTracker.setEnabled(settings.passiveActivityEnabled).then(function () {
+      if (!settings.passiveActivityEnabled) return undefined;
+      return refreshFocusedTab(settings);
+    });
+  }
+
+  function flushPassiveActivity() {
+    return getSettings().then(function (settings) {
+      if (!settings.passiveActivityEnabled) return activityTracker.setEnabled(false);
+      return activityTracker.setEnabled(true).then(function () {
+        return refreshFocusedTab(settings);
+      }).then(function () {
+        return activityTracker.flush();
+      });
+    });
+  }
+
+  function setupPassiveActivity() {
+    if (ext.alarms && ext.alarms.create) {
+      ext.alarms.create(ACTIVITY_FLUSH_ALARM, { periodInMinutes: 5 });
+    }
+    if (ext.idle && ext.idle.setDetectionInterval) {
+      ext.idle.setDetectionInterval(60);
+    }
+    return getSettings().then(configurePassiveActivity);
   }
 
   function captureFromInfo(kind, info, tab) {
@@ -123,11 +204,14 @@
     return Promise.all([
       getSettings(),
       queue.list(),
-      ext.storage.local.get(STATUS_KEY)
+      ext.storage.local.get(STATUS_KEY),
+      activityTracker.getState()
     ]).then(function (results) {
       return {
         settings: results[0],
         pendingCount: results[1].length,
+        pendingActivityCount: results[3].pendingBatches.length,
+        activityState: results[3],
         status: results[2] && results[2][STATUS_KEY] || {}
       };
     });
@@ -170,19 +254,24 @@
   }
 
   function handleMessage(message) {
-    if (!message || message.type !== 'verstak.capture') return Promise.resolve(undefined);
-    if (message.action === 'getState') return getState();
-    if (message.action === 'saveSettings') {
-      return saveSettings(message.settings).then(function () {
-        return setupContextMenus();
-      }).then(function () {
-        return setStatus({ receiverReachable: null, lastResult: 'settings-saved', lastError: '' });
+    return ready.then(function () {
+      if (!message || message.type !== 'verstak.capture') return undefined;
+      if (message.action === 'getState') return getState();
+      if (message.action === 'saveSettings') {
+        return saveSettings(message.settings).then(function () {
+          return setupContextMenus();
+        }).then(function () {
+          return getSettings().then(configurePassiveActivity);
+        }).then(function () {
+          return setStatus({ receiverReachable: null, lastResult: 'settings-saved', lastError: '' });
+        }).then(getState);
+      }
+      if (message.action === 'retryPending') return retryPending().then(getState);
+      if (message.action === 'retryPendingActivity') return activityTracker.retryPending().then(getState);
+      return activeTab().then(function (tab) {
+        return sendOrQueue(captureFromInfo(message.kind || 'page', message, tab));
       }).then(getState);
-    }
-    if (message.action === 'retryPending') return retryPending().then(getState);
-    return activeTab().then(function (tab) {
-      return sendOrQueue(captureFromInfo(message.kind || 'page', message, tab));
-    }).then(getState);
+    });
   }
 
   ext.runtime.onMessage.addListener(function (message, sender, sendResponse) {
@@ -190,5 +279,64 @@
       sendResponse({ error: err && err.message ? err.message : String(err) });
     });
     return true;
+  });
+
+  if (ext.tabs && ext.tabs.onActivated) {
+    ext.tabs.onActivated.addListener(function (info) {
+      if (!isFocusedWindow(info.windowId) || !ext.tabs.get) return;
+      activeTabID = info.tabId;
+      ready.then(function () { return getSettings(); }).then(function (settings) {
+        return ext.tabs.get(info.tabId).then(function (tab) { return trackTab(tab, settings); });
+      }).catch(function () {});
+    });
+  }
+
+  if (ext.tabs && ext.tabs.onUpdated) {
+    ext.tabs.onUpdated.addListener(function (tabID, changeInfo, tab) {
+      if (tabID !== activeTabID || (!changeInfo.url && !(tab && tab.url))) return;
+      ready.then(function () { return getSettings(); }).then(function (settings) {
+        return trackTab(tab || { id: tabID, url: changeInfo.url }, settings);
+      }).catch(function () {});
+    });
+  }
+
+  if (ext.windows && ext.windows.onFocusChanged) {
+    ext.windows.onFocusChanged.addListener(function (windowID) {
+      focusedWindowID = windowID;
+      if (windowID === (ext.windows.WINDOW_ID_NONE == null ? -1 : ext.windows.WINDOW_ID_NONE)) {
+        activityTracker.setActiveHostname('', false).catch(function () {});
+        return;
+      }
+      ready.then(function () { return getSettings(); }).then(refreshFocusedTab).catch(function () {});
+    });
+  }
+
+  if (ext.idle && ext.idle.onStateChanged) {
+    ext.idle.onStateChanged.addListener(function (state) {
+      if (state === 'active') {
+        ready.then(function () { return getSettings(); }).then(refreshFocusedTab).catch(function () {});
+        return;
+      }
+      activityTracker.setActiveHostname('', false).catch(function () {});
+    });
+  }
+
+  if (ext.alarms && ext.alarms.onAlarm) {
+    ext.alarms.onAlarm.addListener(function (alarm) {
+      if (alarm && alarm.name === ACTIVITY_FLUSH_ALARM) flushPassiveActivity().catch(function () {});
+    });
+  }
+
+  if (ext.tabs && ext.tabs.onRemoved) {
+    ext.tabs.onRemoved.addListener(function (tabID) {
+      if (tabID === activeTabID) {
+        activeTabID = null;
+        activityTracker.setActiveHostname('', false).catch(function () {});
+      }
+    });
+  }
+
+  var ready = activityTracker.initialize().then(setupPassiveActivity).catch(function (error) {
+    console.warn('[verstak] passive activity initialization failed:', error);
   });
 })();

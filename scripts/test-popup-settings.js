@@ -35,10 +35,12 @@ const elements = {};
   'receiver-token-input',
   'file-input',
   'pending-count',
+  'activity-pending-count',
   'status-dot',
   'subtitle',
   'receiver-label',
   'pending-label',
+  'activity-pending-label',
   'url-label',
   'capture-page',
   'capture-file',
@@ -53,6 +55,11 @@ const elements = {};
   'language-ru-option',
   'save-settings',
   'context-menu-hint',
+  'passive-activity-enabled',
+  'passive-activity-label',
+  'passive-activity-disclosure',
+  'passive-activity-exclusions-label',
+  'passive-activity-exclusions',
 ].forEach((id) => {
   elements[id] = new Element();
 });
@@ -63,6 +70,8 @@ const initialState = {
     receiverUrl: 'http://127.0.0.1:47731/api/browser-inbox/v1/captures',
     receiverToken: 'persisted-token',
     language: 'system',
+    passiveActivityEnabled: false,
+    passiveActivityExcludedDomains: ['youtube.com'],
   },
   pendingCount: 0,
   status: {},
@@ -112,6 +121,8 @@ async function flush() {
   assert.strictEqual(elements['receiver-input'].value, initialState.settings.receiverUrl);
   assert.strictEqual(elements['receiver-token-input'].value, initialState.settings.receiverToken);
   assert.strictEqual(elements['language-select'].value, 'system');
+  assert.strictEqual(elements['passive-activity-enabled'].checked, false);
+  assert.strictEqual(elements['passive-activity-exclusions'].value, 'youtube.com');
   assert.strictEqual(elements['capture-page'].textContent, 'Отправить страницу');
   assert.strictEqual(elements['receiver-state'].textContent, 'Неизвестно');
   assert.strictEqual(document.documentElement.lang, 'ru');
@@ -129,9 +140,13 @@ async function flush() {
   assert.strictEqual(savedSettings.language, 'en');
   assert.strictEqual(savedSettings.receiverUrl, initialState.settings.receiverUrl);
   assert.strictEqual(savedSettings.receiverToken, initialState.settings.receiverToken);
+  assert.strictEqual(savedSettings.passiveActivityEnabled, false);
+  assert.deepStrictEqual(Array.from(savedSettings.passiveActivityExcludedDomains), ['youtube.com']);
 
   elements['receiver-input'].value = 'http://127.0.0.1:47731/api/browser-inbox/v1/captures';
   elements['receiver-token-input'].value = 'new-token';
+  elements['passive-activity-enabled'].checked = true;
+  elements['passive-activity-exclusions'].value = 'youtube.com\nx.com';
   elements['save-settings'].click();
   await flush();
 
@@ -139,6 +154,8 @@ async function flush() {
   assert.strictEqual(savedSettings.receiverUrl, 'http://127.0.0.1:47731/api/browser-inbox/v1/captures');
   assert.strictEqual(savedSettings.receiverToken, 'new-token');
   assert.strictEqual(savedSettings.language, 'en');
+  assert.strictEqual(savedSettings.passiveActivityEnabled, true);
+  assert.deepStrictEqual(Array.from(savedSettings.passiveActivityExcludedDomains), ['youtube.com', 'x.com']);
   console.log('browser extension popup localization/settings tests passed');
 })().catch((error) => {
   console.error(error);
