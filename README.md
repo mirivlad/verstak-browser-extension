@@ -67,12 +67,12 @@ Publish the signed XPI and `updates.json` as the current GitHub Release:
 VERSTAK_BROWSER_ENV=/path/to/.env npm run publish:github
 ```
 
-The publisher reads the version from `package.json`. It requires an
-authenticated GitHub CLI, a clean local `main` equal to `origin/main`, and a
-tag pointing at that commit. It creates and pushes the tag if needed, then
-creates or updates the GitHub Release. Re-running it for the same tag replaces
-the XPI and `updates.json` assets. `npm run publish:firefox` remains as a
-compatible alias for the same Firefox publishing flow.
+The publisher reads the version from `package.json` and requires an
+authenticated GitHub CLI plus a clean local `main` equal to `origin/main`. It
+creates and pushes the version tag if needed, then creates or updates the
+GitHub Release. Re-running it for the same tag replaces the XPI and
+`updates.json` assets. `npm run publish:firefox` remains as a compatible alias
+for the same Firefox publishing flow.
 
 For an explicit version check, pass the current tag after `--`:
 
