@@ -4,7 +4,7 @@
   "version": "2.0.3",
   "description": "Send pages, selections, links, and files to the local Verstak browser inbox.",
   "author": "Verstak",
-  "homepage_url": "https://git.mirv.top/verstak/verstak-browser-extension",
+  "homepage_url": "https://github.com/mirivlad/verstak-browser-extension",
   "permissions": ["alarms", "contextMenus", "idle", "storage", "tabs", "windows"],
   "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
   "background": {
