@@ -39,11 +39,34 @@ domains such as `youtube.com` or `x.com`.
 Manual “Send page”, selection, link and file actions are separate. They create
 Browser Inbox captures; they do not create a workspace or a journal entry.
 
-## Firefox Release
+## Firefox download and updates
+
+The signed XPI is published on the [GitHub Releases page](https://github.com/mirivlad/verstak-browser-extension/releases).
+Download the Firefox asset named `verstak-firefox-<version>.xpi` from the latest
+release and open it in Firefox to install it.
+
+After the first public release, installed copies check GitHub Releases for
+updates through the release's `updates.json` asset. During the alpha phase each
+published release is the current update channel.
+
+## Firefox release publishing
 
 Firefox signing uses `web-ext` and AMO credentials from an env file. The script
 requires `WEB_EXT_API_PROXY`; AMO upload and approval polling run through that
 proxy.
+
+Create the signed XPI and publish it, together with `updates.json`, as the
+current GitHub Release:
+
+```bash
+VERSTAK_BROWSER_ENV=/path/to/.env npm run publish:firefox
+```
+
+The first invocation publishes tag `v2.0.2` and bootstraps the
+`releases/latest/download/updates.json` endpoint. Re-running the command
+replaces those two release assets for the same tag.
+
+To sign and prepare release files locally without changing GitHub:
 
 ```bash
 VERSTAK_BROWSER_ENV=/home/mirivlad/git/verstak/.env npm run release:firefox
@@ -54,8 +77,9 @@ Release output:
 - `release/firefox/verstak-firefox-<version>.xpi`
 - `release/firefox/updates.json`
 
-The XPI is signed as an unlisted/self-distributed Firefox extension. Build and
-release artifacts are local outputs and are not committed.
+The XPI is signed as an unlisted/self-distributed Firefox extension; GitHub
+Releases distribute that signed file. Build and release artifacts are local
+outputs and are not committed.
 
 ## Reproducible local package
 

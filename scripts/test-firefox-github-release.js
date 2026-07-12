@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const assert = require('assert');
+const fs = require('fs');
 const release = require('./firefox-github-release');
 
 const version = '2.0.2';
@@ -27,5 +28,12 @@ assert.equal(
   firefoxManifest.browser_specific_settings.gecko.update_url,
   'https://github.com/mirivlad/verstak-browser-extension/releases/latest/download/updates.json',
 );
+
+const publisher = fs.readFileSync('scripts/publish-firefox-github-release.sh', 'utf8');
+assert.match(publisher, /gh auth status/);
+assert.match(publisher, /gh release create/);
+assert.match(publisher, /gh release upload/);
+assert.match(publisher, /--clobber/);
+assert.match(publisher, /--latest/);
 
 console.log('Firefox GitHub release metadata tests passed');
