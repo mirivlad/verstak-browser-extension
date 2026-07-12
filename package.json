@@ -3,6 +3,7 @@
   "version": "2.0.2",
   "private": true,
   "description": "Verstak browser capture extension for Chromium and Firefox",
+  "license": "AGPL-3.0-or-later",
   "scripts": {
     "build": "node scripts/build-extension.js",
     "test": "node scripts/test-hostname.js && node scripts/test-activity-tracker.js && node scripts/test-protocol.js && node scripts/test-i18n.js && node scripts/test-popup-settings.js && node scripts/test-popup-catalog-fallback.js && node scripts/test-background-i18n.js",
