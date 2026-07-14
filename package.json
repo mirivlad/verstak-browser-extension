@@ -6,7 +6,7 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "build": "node scripts/build-extension.js",
-    "test": "node scripts/test-hostname.js && node scripts/test-activity-tracker.js && node scripts/test-protocol.js && node scripts/test-i18n.js && node scripts/test-popup-settings.js && node scripts/test-popup-select-style.js && node scripts/test-popup-catalog-fallback.js && node scripts/test-background-i18n.js && node scripts/test-firefox-github-release.js",
+    "test": "node scripts/test-manifests.js && node scripts/test-hostname.js && node scripts/test-activity-tracker.js && node scripts/test-protocol.js && node scripts/test-i18n.js && node scripts/test-popup-settings.js && node scripts/test-popup-select-style.js && node scripts/test-popup-catalog-fallback.js && node scripts/test-background-i18n.js && node scripts/test-firefox-github-release.js",
     "sign:firefox": "./scripts/sign-firefox-xpi.sh",
     "release:firefox": "./scripts/release-firefox-xpi.sh",
     "publish:firefox": "./scripts/publish-firefox-github-release.sh",

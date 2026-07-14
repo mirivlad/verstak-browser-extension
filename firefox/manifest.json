@@ -15,7 +15,7 @@
       }
     }
   },
-  "permissions": ["alarms", "contextMenus", "idle", "storage", "tabs", "windows", "http://127.0.0.1/*", "http://localhost/*"],
+  "permissions": ["alarms", "contextMenus", "idle", "storage", "tabs", "http://127.0.0.1/*", "http://localhost/*"],
   "background": {
     "scripts": ["hostname.js", "activity-tracker.js", "protocol.js", "api.js", "queue.js", "i18n.js", "background.js"]
   },
