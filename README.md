@@ -77,7 +77,7 @@ for the same Firefox publishing flow.
 For an explicit version check, pass the current tag after `--`:
 
 ```bash
-VERSTAK_BROWSER_ENV=/path/to/.env npm run publish:github -- v2.0.4
+VERSTAK_BROWSER_ENV=/path/to/.env npm run publish:github -- v2.0.5
 ```
 
 Release output:
