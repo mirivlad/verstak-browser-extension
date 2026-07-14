@@ -29,7 +29,7 @@ assert.ok(Object.values(ru).every((value) => typeof value === 'string'));
 const tEn = i18n.createTranslator({ en, ru }, 'en');
 const tRu = i18n.createTranslator({ en, ru }, 'ru');
 assert.strictEqual(tRu('status.queued'), 'В очереди до запуска Верстака');
-assert.strictEqual(tEn('error.value', { error: 'offline' }), 'Error: offline');
+assert.strictEqual(tEn('error.sendCapture'), 'Could not send the capture. Please try again.');
 assert.strictEqual(tRu('missing', null, 'Fallback'), 'Fallback');
 assert.strictEqual(tRu('missing.key'), 'missing.key');
 

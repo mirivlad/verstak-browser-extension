@@ -118,6 +118,11 @@
     statusEl.textContent = text;
   }
 
+  function reportError(key, fallback, error) {
+    console.warn('[verstak.popup] request failed:', error);
+    setStatus(t(key, null, fallback));
+  }
+
   function request(message) {
     return Promise.resolve(ext.runtime.sendMessage(message)).then(function (result) {
       if (result && result.error) throw new Error(result.error);
@@ -148,7 +153,7 @@
       applyLocale(state.settings && state.settings.language || 'system');
       return state;
     }).catch(function (error) {
-      setStatus(error && error.message ? error.message : String(error));
+      reportError('error.loadState', 'Could not load the extension state. Please try again.', error);
     });
   }
 
@@ -174,7 +179,7 @@
       if (successMessage) setStatus(t('status.saved', null, 'Saved'));
       return state;
     }).catch(function (error) {
-      setStatus(error && error.message ? error.message : String(error));
+      reportError('error.saveSettings', 'Could not save settings. Please try again.', error);
     });
   }
 
@@ -188,7 +193,7 @@
         setStatus(t('status.done', null, 'Done'));
       }
     }).catch(function (error) {
-      setStatus(error && error.message ? error.message : String(error));
+      reportError('error.sendCapture', 'Could not send the capture. Please try again.', error);
     });
   }
 
@@ -218,7 +223,7 @@
         fileDataBase64: arrayBufferToBase64(results[0])
       });
     }).catch(function (error) {
-      setStatus(error && error.message ? error.message : String(error));
+      reportError('error.readFile', 'Could not read the file. Choose it again.', error);
     });
   });
 

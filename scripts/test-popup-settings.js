@@ -65,6 +65,8 @@ const elements = {};
 });
 
 let savedSettings = null;
+let nextRequestError = null;
+const technicalWarnings = [];
 const initialState = {
   settings: {
     receiverUrl: 'http://127.0.0.1:47731/api/browser-inbox/v1/captures',
@@ -80,6 +82,11 @@ const browser = {
   runtime: {
     getURL(relativePath) { return `extension://${relativePath}`; },
     sendMessage(message) {
+      if (nextRequestError) {
+        const error = nextRequestError;
+        nextRequestError = null;
+        return Promise.reject(new Error(error));
+      }
       if (message.action === 'getState') return Promise.resolve(initialState);
       if (message.action === 'saveSettings') {
         savedSettings = message.settings;
@@ -107,10 +114,24 @@ function fetchCatalog(url) {
 }
 const i18nPath = path.join(__dirname, '..', 'shared', 'i18n.js');
 const popupPath = path.join(__dirname, '..', 'shared', 'popup', 'popup.js');
-const context = vm.createContext({ browser, console, document, Promise, btoa, fetch: fetchCatalog, navigator: { language: 'en-US' } });
+const popupSource = fs.readFileSync(popupPath, 'utf8');
+assert.equal(/setStatus\(\s*(?:error\b|err\b|String\()/.test(popupSource), false);
+const context = vm.createContext({
+  browser,
+  console: {
+    error: console.error,
+    log: console.log,
+    warn(...args) { technicalWarnings.push(args.map(String).join(' ')); },
+  },
+  document,
+  Promise,
+  btoa,
+  fetch: fetchCatalog,
+  navigator: { language: 'en-US' },
+});
 context.globalThis = context;
 vm.runInContext(fs.readFileSync(i18nPath, 'utf8'), context, { filename: i18nPath });
-vm.runInContext(fs.readFileSync(popupPath, 'utf8'), context, { filename: popupPath });
+vm.runInContext(popupSource, context, { filename: popupPath });
 
 async function flush() {
   for (let i = 0; i < 16; i += 1) await Promise.resolve();
@@ -156,6 +177,14 @@ async function flush() {
   assert.strictEqual(savedSettings.language, 'en');
   assert.strictEqual(savedSettings.passiveActivityEnabled, true);
   assert.deepStrictEqual(Array.from(savedSettings.passiveActivityExcludedDomains), ['youtube.com', 'x.com']);
+
+  nextRequestError = '[plugin:verstak.browser-inbox] captures.create failed: receiver unavailable';
+  elements['capture-page'].click();
+  await flush();
+  assert.strictEqual(elements.status.textContent, 'Could not send the capture. Please try again.');
+  assert.equal(elements.status.textContent.includes('[plugin:'), false);
+  assert.ok(technicalWarnings.some((message) => message.includes('captures.create failed')));
+
   console.log('browser extension popup localization/settings tests passed');
 })().catch((error) => {
   console.error(error);

@@ -30,7 +30,10 @@
   "error.chooseFile": "Choose a file first",
   "error.fileTooLarge": "File is too large for browser capture",
   "error.invalidReceiverUrl": "Receiver URL must start with http:// or https://",
-  "error.value": "Error: {error}",
+  "error.loadState": "Could not load the extension state. Please try again.",
+  "error.saveSettings": "Could not save settings. Please try again.",
+  "error.sendCapture": "Could not send the capture. Please try again.",
+  "error.readFile": "Could not read the file. Choose it again.",
   "context.sendPage": "Send page to Verstak",
   "context.sendSelection": "Send selection to Verstak",
   "context.sendLink": "Send link to Verstak"
