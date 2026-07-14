@@ -7,6 +7,7 @@ cd "$ROOT_DIR"
 REPOSITORY="mirivlad/verstak-browser-extension"
 SOURCE_DIR="${VERSTAK_FIREFOX_SOURCE_DIR:-dist/firefox}"
 RELEASE_DIR="${VERSTAK_FIREFOX_RELEASE_DIR:-release/firefox}"
+RELEASE_NOTES_DIR="${VERSTAK_RELEASE_NOTES_DIR:-release-notes}"
 GIT_BIN="${GIT_BIN:-git}"
 GH_BIN="${GH_BIN:-gh}"
 
@@ -57,12 +58,21 @@ fi
 if "$GH_BIN" release view "$TAG" --repo "$REPOSITORY" >/dev/null 2>&1; then
   "$GH_BIN" release upload "$TAG" "$XPI" "$UPDATES" --repo "$REPOSITORY" --clobber
 else
+  NOTES_FILE="$RELEASE_NOTES_DIR/$TAG.md"
+  if [[ ! -s "$NOTES_FILE" ]]; then
+    echo "ERROR: human-readable release notes are required: $NOTES_FILE" >&2
+    exit 1
+  fi
+
+  RELEASE_OPTIONS=(--notes-file "$NOTES_FILE" --generate-notes --latest --verify-tag)
+  PREVIOUS_TAG="$("$GIT_BIN" describe --tags --abbrev=0 "${HEAD}^" 2>/dev/null || true)"
+  if [[ -n "$PREVIOUS_TAG" ]]; then
+    RELEASE_OPTIONS+=(--notes-start-tag "$PREVIOUS_TAG")
+  fi
   "$GH_BIN" release create "$TAG" "$XPI" "$UPDATES" \
     --repo "$REPOSITORY" \
     --title "Verstak Browser Extension $VERSION" \
-    --generate-notes \
-    --latest \
-    --verify-tag
+    "${RELEASE_OPTIONS[@]}"
 fi
 
 echo "GitHub release:"

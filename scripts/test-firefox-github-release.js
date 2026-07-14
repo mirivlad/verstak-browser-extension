@@ -43,6 +43,9 @@ assert.match(publisher, /release create/);
 assert.match(publisher, /release upload/);
 assert.match(publisher, /--clobber/);
 assert.match(publisher, /--latest/);
+assert.match(publisher, /--notes-file/);
+assert.match(publisher, /--generate-notes/);
+assert.match(publisher, /--notes-start-tag/);
 
 const genericPublisher = fs.readFileSync('scripts/publish-github-release.sh', 'utf8');
 assert.match(genericPublisher, /publish-firefox-github-release\.sh/);
