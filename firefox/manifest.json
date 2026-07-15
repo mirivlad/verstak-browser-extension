@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Verstak Bridge",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Send pages, selections, links, and files to the local Verstak browser inbox.",
   "author": "Verstak",
   "homepage_url": "https://github.com/mirivlad/verstak-browser-extension",
