@@ -1,4 +1,18 @@
+<div align="center">
+
 # Verstak Browser Extension
+
+### Send pages, selections, links and files from the browser into Verstak.
+
+**English** · [Русский](README.ru.md)
+
+[![Release](https://img.shields.io/github/v/release/mirivlad/verstak-browser-extension?include_prereleases\&label=release)](https://github.com/mirivlad/verstak-browser-extension/releases)
+![Status](https://img.shields.io/badge/status-alpha-orange)
+[![License](https://img.shields.io/github/license/mirivlad/verstak-browser-extension)](LICENSE)
+
+</div>
+
+> **Alpha software.** Use with a matching Verstak Desktop alpha release.
 
 Verstak Browser Extension captures pages, selected text, links, and selected
 files and sends them to a local Verstak browser inbox receiver.
@@ -6,8 +20,6 @@ files and sends them to a local Verstak browser inbox receiver.
 The extension does not know Notes, Files, Activity, or Journal internals. It
 only sends capture events through the public local receiver protocol. If the
 receiver is offline, captures stay in the extension pending queue.
-
-> **Alpha software.** Use with a matching Verstak Desktop alpha release.
 
 ## Build
 
