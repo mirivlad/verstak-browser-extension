@@ -14,6 +14,9 @@
     "release:package": "./scripts/package-release.sh"
   },
   "devDependencies": {
-    "web-ext": "^8.3.0"
+    "web-ext": "^10.5.0"
+  },
+  "overrides": {
+    "adm-zip": "^0.6.0"
   }
 }
