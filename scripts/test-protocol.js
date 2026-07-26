@@ -62,7 +62,13 @@ const activityBatch = {
     startedAt: '2026-07-12T10:00:00.000Z',
     endedAt: '2026-07-12T10:05:00.000Z',
     durationSeconds: 300,
-    url: 'https://must-not-be-sent.example'
+    url: 'https://example.com/admin/settings?tab=billing#note-to-self'
+  }, {
+    hostname: 'example.com',
+    startedAt: '2026-07-12T11:00:00.000Z',
+    endedAt: '2026-07-12T11:05:00.000Z',
+    durationSeconds: 300,
+    url: 'https://somewhere-else.example/page'
   }]
 };
 
@@ -81,7 +87,12 @@ globalThis.VerstakBrowser.sendCapture('http://127.0.0.1:47731/api/browser-inbox/
         const body = JSON.parse(request.options.body);
         assert.equal(body.batchId, 'activity-batch-id');
         assert.equal(body.entries[0].hostname, 'example.com');
-        assert.equal(Object.prototype.hasOwnProperty.call(body.entries[0], 'url'), false);
+        // The address is sent; what follows '#' never is.
+        assert.equal(body.entries[0].url, 'https://example.com/admin/settings?tab=billing');
+        // An address that contradicts the site it is reported under is dropped
+        // rather than sent: the receiver would refuse the whole batch, and a
+        // batch that can never be accepted blocks every one behind it.
+        assert.equal(Object.prototype.hasOwnProperty.call(body.entries[1], 'url'), false);
       });
   })
   .then(() => {

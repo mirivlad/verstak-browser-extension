@@ -37,16 +37,22 @@ Build output:
 Load `dist/chromium` as an unpacked extension in Chromium-based browsers, or
 load `dist/firefox` temporarily in Firefox during development.
 
-## Passive domain activity
+## Passive page activity
 
 Passive tracking is **off by default**. On first use the extension explains
 what it records; the user must explicitly enable it in extension settings.
 
 When enabled, it observes only the focused browser's active tab and sends
-bounded aggregate intervals as a canonical domain name plus duration. It never
-sends URL paths, page titles, page text, selected text, keystrokes, navigation
+bounded aggregate intervals as the page address plus duration. The address has
+everything after `#` removed: a fragment is where the reader was inside one
+page, not a different page. The path and query are kept, because a domain alone
+cannot tell configuring a site in its dashboard from reading its public pages,
+and telling those apart is the point of recording any of this.
+
+It never sends page titles, page text, selected text, keystrokes, navigation
 history or inactive-tab time. The settings screen has an exclusion list for
-domains such as `youtube.com` or `x.com`.
+domains such as `youtube.com` or `x.com`; nothing at all is recorded for an
+excluded domain.
 
 Manual “Send page”, selection, link and file actions are separate. They create
 Browser Inbox captures; they do not create a workspace or a journal entry.

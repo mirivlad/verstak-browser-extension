@@ -31,6 +31,7 @@
   }
 
   function safeActivityBatch(payload) {
+    var protocol = root.VerstakBrowser || {};
     if (!payload || payload.schemaVersion !== 1 || !payload.batchId || !payload.createdAt || !payload.source || !Array.isArray(payload.entries) || payload.entries.length === 0) {
       throw new Error('invalid activity batch');
     }
@@ -38,12 +39,20 @@
       if (!entry || !entry.hostname || !entry.startedAt || !entry.endedAt || !Number.isFinite(Number(entry.durationSeconds)) || Number(entry.durationSeconds) <= 0) {
         throw new Error('invalid activity batch entry');
       }
-      return {
+      var safe = {
         hostname: String(entry.hostname),
         startedAt: String(entry.startedAt),
         endedAt: String(entry.endedAt),
         durationSeconds: Math.floor(Number(entry.durationSeconds))
       };
+      // Normalized once more on the way out: whatever is sent is an address
+      // with nothing after '#', whoever assembled the batch. An address that
+      // does not belong to the site being reported is dropped rather than sent
+      // -- the receiver would refuse the whole batch, and a batch that can
+      // never be accepted blocks every one behind it.
+      var url = protocol.normalizePageURLV1 ? protocol.normalizePageURLV1(entry.url || '') : '';
+      if (url && protocol.normalizeURLHostnameV1(url) === safe.hostname) safe.url = url;
+      return safe;
     });
     return {
       schemaVersion: 1,

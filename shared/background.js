@@ -103,21 +103,26 @@
 
   function trackTab(tab, settings) {
     if (!settings.passiveActivityEnabled || !tab || !isFocusedWindow(tab.windowId)) {
-      return activityTracker.setActiveHostname('', false);
+      return activityTracker.setActivePage(null, false);
     }
     activeTabID = tab.id == null ? activeTabID : tab.id;
     var hostname = protocol.normalizeURLHostnameV1(tab.url || '');
+    // Exclusions are still stated as domains: a user excludes a site, not a
+    // page of one.
     if (!hostname || protocol.isExcludedHostname(hostname, settings.passiveActivityExcludedDomains)) {
-      return activityTracker.setActiveHostname('', false);
+      return activityTracker.setActivePage(null, false);
     }
-    return activityTracker.setActiveHostname(hostname, true);
+    return activityTracker.setActivePage({
+      url: protocol.normalizePageURLV1(tab.url || ''),
+      hostname: hostname
+    }, true);
   }
 
   function refreshFocusedTab(settings) {
     return activeTab().then(function (tab) {
       return trackTab(tab, settings);
     }).catch(function () {
-      return activityTracker.setActiveHostname('', false);
+      return activityTracker.setActivePage(null, false);
     });
   }
 
@@ -304,7 +309,7 @@
     ext.windows.onFocusChanged.addListener(function (windowID) {
       focusedWindowID = windowID;
       if (windowID === (ext.windows.WINDOW_ID_NONE == null ? -1 : ext.windows.WINDOW_ID_NONE)) {
-        activityTracker.setActiveHostname('', false).catch(function () {});
+        activityTracker.setActivePage(null, false).catch(function () {});
         return;
       }
       ready.then(function () { return getSettings(); }).then(refreshFocusedTab).catch(function () {});
@@ -317,7 +322,7 @@
         ready.then(function () { return getSettings(); }).then(refreshFocusedTab).catch(function () {});
         return;
       }
-      activityTracker.setActiveHostname('', false).catch(function () {});
+      activityTracker.setActivePage(null, false).catch(function () {});
     });
   }
 
@@ -331,7 +336,7 @@
     ext.tabs.onRemoved.addListener(function (tabID) {
       if (tabID === activeTabID) {
         activeTabID = null;
-        activityTracker.setActiveHostname('', false).catch(function () {});
+        activityTracker.setActivePage(null, false).catch(function () {});
       }
     });
   }
