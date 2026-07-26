@@ -50,8 +50,8 @@ const browser = {
   },
   i18n: { getUILanguage() { return 'en-US'; } },
   tabs: {
-    query() { return Promise.resolve([{ id: 7, windowId: 1, url: 'https://example.com/private-path', title: 'Private title' }]); },
-    get() { return Promise.resolve({ id: 7, windowId: 1, url: 'https://example.com/private-path', title: 'Private title' }); },
+    query() { return Promise.resolve([{ id: 7, windowId: 1, url: 'https://example.com/admin/settings#private-note', title: 'Private title' }]); },
+    get() { return Promise.resolve({ id: 7, windowId: 1, url: 'https://example.com/admin/settings#private-note', title: 'Private title' }); },
     onActivated: { addListener() {} },
     onUpdated: { addListener() {} },
     onRemoved: { addListener() {} },
@@ -110,8 +110,13 @@ function sendMessage(message) {
     },
   });
   assert.strictEqual(trackingState.settings.passiveActivityEnabled, true);
-  assert.ok(trackingState.activityState.activeAccumulator['example.com']);
-  assert.equal(JSON.stringify(trackingState.activityState).includes('private-path'), false);
+  // Time is accounted against the page, so that configuring a site in its
+  // dashboard can be told from reading its public pages afterwards.
+  const accounted = trackingState.activityState.activeAccumulator['https://example.com/admin/settings'];
+  assert.ok(accounted, `expected the address to be accounted, got ${JSON.stringify(Object.keys(trackingState.activityState.activeAccumulator))}`);
+  assert.equal(accounted.hostname, 'example.com');
+  // Neither the fragment nor the page title is ever stored.
+  assert.equal(JSON.stringify(trackingState.activityState).includes('private-note'), false);
   assert.equal(JSON.stringify(trackingState.activityState).includes('Private title'), false);
 
   const nextState = await sendMessage({

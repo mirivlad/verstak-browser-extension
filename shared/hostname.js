@@ -3,6 +3,7 @@
 
   var MAX_DNS_HOSTNAME_LENGTH = 253;
   var MAX_DNS_LABEL_LENGTH = 63;
+  var MAX_PAGE_URL_LENGTH = 2048;
 
   function trimmedString(value) {
     return typeof value === 'string' ? value.trim() : '';
@@ -76,9 +77,43 @@
     }
   }
 
+  // The address of a page, without whatever follows '#'. A fragment is the
+  // reader's position inside one page, not a different page, and it is the one
+  // part of an address that is routinely a private note to the browser.
+  //
+  // Everything else is kept: a domain alone cannot tell configuring a site in
+  // its dashboard from reading its public pages, and that difference is the
+  // reason to record any of this.
+  function normalizePageURLV1(input) {
+    var value = trimmedString(input);
+    if (!value) return '';
+    var url;
+    try {
+      url = new URL(value);
+    } catch (_) {
+      return '';
+    }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return '';
+    var host = normalizeHostnameV1(url.hostname);
+    if (!host) return '';
+    var authority = host.indexOf(':') !== -1 ? '[' + host + ']' : host;
+    if (url.port) authority += ':' + url.port;
+    var origin = url.protocol + '//' + authority;
+    var path = url.pathname || '/';
+    var full = origin + path + url.search;
+    if (full.length <= MAX_PAGE_URL_LENGTH) return full;
+    // Too long to keep whole. A truncated address would name a page that does
+    // not exist, so what is dropped is dropped entirely.
+    var withoutQuery = origin + path;
+    if (withoutQuery.length <= MAX_PAGE_URL_LENGTH) return withoutQuery;
+    return origin + '/';
+  }
+
   var api = {
+    MAX_PAGE_URL_LENGTH: MAX_PAGE_URL_LENGTH,
     normalizeHostnameV1: normalizeHostnameV1,
-    normalizeURLHostnameV1: normalizeURLHostnameV1
+    normalizeURLHostnameV1: normalizeURLHostnameV1,
+    normalizePageURLV1: normalizePageURLV1
   };
 
   root.VerstakBrowser = Object.assign(root.VerstakBrowser || {}, api);

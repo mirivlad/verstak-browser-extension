@@ -69,6 +69,21 @@
     return new Date(time).toISOString();
   }
 
+  // Keyed by address, and by site for state written before addresses were
+  // recorded, so time already accounted for is not thrown away on upgrade.
+  function accumulatorKey(page) {
+    return page.url || page.hostname;
+  }
+
+  function normalizedPage(page) {
+    if (!page) return null;
+    if (typeof page === 'string') return page ? { url: '', hostname: page } : null;
+    var url = typeof page.url === 'string' ? page.url : '';
+    var host = typeof page.hostname === 'string' ? page.hostname : '';
+    if (!url && !host) return null;
+    return { url: url, hostname: host };
+  }
+
   function isExcludedHostname(hostname, excludedDomains) {
     var normalizer = root.VerstakBrowser && root.VerstakBrowser.normalizeHostnameV1;
     var canonicalHostname = typeof normalizer === 'function' ? normalizer(hostname) : '';
@@ -87,7 +102,7 @@
     this.now = typeof options.now === 'function' ? options.now : function () { return Date.now(); };
     this.state = initialState();
     this.enabled = false;
-    this.activeHostname = '';
+    this.activePage = null;
     this.serial = Promise.resolve();
   }
 
@@ -126,7 +141,7 @@
     return this.enqueue(function () {
       self.enabled = enabled === true;
       if (!self.enabled) {
-        self.activeHostname = '';
+        self.activePage = null;
         self.state.activeAccumulator = {};
         self.state.pendingBatches = [];
       }
@@ -134,18 +149,22 @@
     });
   };
 
-  DomainActivityTracker.prototype.setActiveHostname = function (hostname, active, observedAt) {
+  // A page, not a site: time is accounted against the address being looked at,
+  // because a domain alone cannot tell configuring a site in its dashboard from
+  // reading its public pages, and telling those apart is the reason to record
+  // any of this.
+  DomainActivityTracker.prototype.setActivePage = function (page, active, observedAt) {
     var self = this;
     var now = isFiniteNumber(observedAt) ? observedAt : this.now();
+    var next = normalizedPage(page);
     return this.enqueue(function () {
-      if (!self.enabled || !active || !hostname) {
-        self.checkpointUnsafe(now);
-        self.activeHostname = '';
+      self.checkpointUnsafe(now);
+      if (!self.enabled || !active || !next) {
+        self.activePage = null;
         return self.persist().then(function () { return self.getStateUnsafe(); });
       }
-      self.checkpointUnsafe(now);
-      self.activeHostname = hostname;
-      self.ensureAccumulator(hostname, now);
+      self.activePage = next;
+      self.ensureAccumulator(next, now);
       return self.persist().then(function () { return self.getStateUnsafe(); });
     });
   };
@@ -159,21 +178,23 @@
     });
   };
 
-  DomainActivityTracker.prototype.ensureAccumulator = function (hostname, now) {
-    if (!this.state.activeAccumulator[hostname]) {
-      this.state.activeAccumulator[hostname] = {
-        hostname: hostname,
+  DomainActivityTracker.prototype.ensureAccumulator = function (page, now) {
+    var key = accumulatorKey(page);
+    if (!this.state.activeAccumulator[key]) {
+      this.state.activeAccumulator[key] = {
+        url: page.url,
+        hostname: page.hostname,
         startedAt: now,
         lastCheckpointAt: now,
         durationMs: 0
       };
     }
-    return this.state.activeAccumulator[hostname];
+    return this.state.activeAccumulator[key];
   };
 
   DomainActivityTracker.prototype.checkpointUnsafe = function (now) {
-    if (!this.enabled || !this.activeHostname) return;
-    var accumulator = this.ensureAccumulator(this.activeHostname, now);
+    if (!this.enabled || !this.activePage) return;
+    var accumulator = this.ensureAccumulator(this.activePage, now);
     var previous = accumulator.lastCheckpointAt;
     var delta = now - previous;
     if (!isFiniteNumber(previous) || delta < 0 || delta > this.maxCheckpointGapMs) {
@@ -194,16 +215,20 @@
       if (!self.enabled) return self.getStateUnsafe();
       self.checkpointUnsafe(now);
       var entries = [];
-      Object.keys(self.state.activeAccumulator).forEach(function (hostname) {
-        var accumulator = self.state.activeAccumulator[hostname];
+      Object.keys(self.state.activeAccumulator).forEach(function (key) {
+        var accumulator = self.state.activeAccumulator[key];
         var durationSeconds = Math.floor(Number(accumulator.durationMs || 0) / 1000);
         if (durationSeconds < 1) return;
-        entries.push({
+        var entry = {
           hostname: accumulator.hostname,
           startedAt: toISOString(accumulator.startedAt),
           endedAt: toISOString(accumulator.lastCheckpointAt),
           durationSeconds: durationSeconds
-        });
+        };
+        // Time accumulated by an older version of the extension knows only the
+        // site. It is still time the user spent, so it is still sent.
+        if (accumulator.url) entry.url = accumulator.url;
+        entries.push(entry);
       });
       if (entries.length) {
         self.state.pendingBatches.push({
@@ -214,7 +239,7 @@
           entries: entries
         });
         self.state.activeAccumulator = {};
-        if (self.activeHostname) self.ensureAccumulator(self.activeHostname, now);
+        if (self.activePage) self.ensureAccumulator(self.activePage, now);
       }
       return self.persist().then(function () {
         return self.deliverPendingUnsafe(now);
