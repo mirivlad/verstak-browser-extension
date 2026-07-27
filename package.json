@@ -1,6 +1,6 @@
 {
   "name": "verstak-browser-extension",
-  "version": "2.0.6",
+  "version": "2.1.0",
   "private": true,
   "description": "Verstak browser capture extension for Chromium and Firefox",
   "license": "AGPL-3.0-or-later",
