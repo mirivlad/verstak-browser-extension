@@ -139,6 +139,21 @@ function sendMessage(message) {
     'Send selection to Verstak',
     'Send link to Verstak',
   ]);
+
+  const languageOnly = await sendMessage({
+    type: 'verstak.capture',
+    action: 'saveLanguage',
+    language: 'ru',
+  });
+  assert.strictEqual(languageOnly.settings.language, 'ru');
+  assert.strictEqual(state.settings.receiverUrl, 'http://127.0.0.1:47731/api/browser-inbox/v1/captures');
+  assert.strictEqual(state.settings.receiverToken, 'paired-token');
+  assert.strictEqual(state.settings.passiveActivityEnabled, false);
+  assert.deepStrictEqual(menuTitles, [
+    'Отправить страницу в Верстак',
+    'Отправить выделение в Верстак',
+    'Отправить ссылку в Верстак',
+  ]);
   console.log('browser extension background localization tests passed');
 })().catch((error) => {
   console.error(error);

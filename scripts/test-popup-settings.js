@@ -65,6 +65,7 @@ const elements = {};
 });
 
 let savedSettings = null;
+let savedLanguage = null;
 let nextRequestError = null;
 const technicalWarnings = [];
 const initialState = {
@@ -91,6 +92,10 @@ const browser = {
       if (message.action === 'saveSettings') {
         savedSettings = message.settings;
         return Promise.resolve({ ...initialState, settings: message.settings });
+      }
+      if (message.action === 'saveLanguage') {
+        savedLanguage = message.language;
+        return Promise.resolve({ ...initialState, settings: { ...initialState.settings, language: message.language } });
       }
       return Promise.resolve(initialState);
     },
@@ -150,6 +155,9 @@ async function flush() {
   elements['capture-file'].click();
   assert.strictEqual(elements.status.textContent, 'Сначала выберите файл');
 
+  elements['receiver-input'].value = 'invalid draft URL';
+  elements['receiver-token-input'].value = 'draft-token';
+  elements['passive-activity-exclusions'].value = 'draft.example';
   elements['language-select'].value = 'en';
   elements['language-select'].change();
   await flush();
@@ -157,12 +165,15 @@ async function flush() {
   assert.strictEqual(elements['capture-page'].textContent, 'Send Page');
   assert.strictEqual(elements['receiver-state'].textContent, 'Unknown');
   assert.strictEqual(document.documentElement.lang, 'en');
-  assert.ok(savedSettings);
-  assert.strictEqual(savedSettings.language, 'en');
-  assert.strictEqual(savedSettings.receiverUrl, initialState.settings.receiverUrl);
-  assert.strictEqual(savedSettings.receiverToken, initialState.settings.receiverToken);
-  assert.strictEqual(savedSettings.passiveActivityEnabled, false);
-  assert.deepStrictEqual(Array.from(savedSettings.passiveActivityExcludedDomains), ['youtube.com']);
+  assert.strictEqual(savedSettings, null, 'language change must not save other settings');
+  assert.strictEqual(savedLanguage, 'en');
+  assert.strictEqual(elements['receiver-input'].value, 'invalid draft URL');
+  assert.strictEqual(elements['receiver-token-input'].value, 'draft-token');
+  assert.strictEqual(elements['passive-activity-exclusions'].value, 'draft.example');
+
+  elements['save-settings'].click();
+  await flush();
+  assert.strictEqual(savedSettings, null, 'invalid draft URL must not be saved');
 
   elements['receiver-input'].value = 'http://127.0.0.1:47731/api/browser-inbox/v1/captures';
   elements['receiver-token-input'].value = 'new-token';
@@ -177,6 +188,13 @@ async function flush() {
   assert.strictEqual(savedSettings.language, 'en');
   assert.strictEqual(savedSettings.passiveActivityEnabled, true);
   assert.deepStrictEqual(Array.from(savedSettings.passiveActivityExcludedDomains), ['youtube.com', 'x.com']);
+
+  nextRequestError = 'language update failed';
+  elements['language-select'].value = 'ru';
+  elements['language-select'].change();
+  await flush();
+  assert.strictEqual(elements['language-select'].value, 'en', 'failed language save must restore persisted preference');
+  assert.strictEqual(document.documentElement.lang, 'en');
 
   nextRequestError = '[plugin:verstak.browser-inbox] captures.create failed: receiver unavailable';
   elements['capture-page'].click();

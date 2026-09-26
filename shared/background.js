@@ -262,6 +262,12 @@
     return ready.then(function () {
       if (!message || message.type !== 'verstak.capture') return undefined;
       if (message.action === 'getState') return getState();
+      if (message.action === 'saveLanguage') {
+        return getSettings().then(function (settings) {
+          settings.language = i18n.normalizePreference(message.language);
+          return saveSettings(settings);
+        }).then(setupContextMenus).then(getState);
+      }
       if (message.action === 'saveSettings') {
         return saveSettings(message.settings).then(function () {
           return setupContextMenus();
