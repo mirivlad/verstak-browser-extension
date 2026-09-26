@@ -19,6 +19,7 @@
   var MAX_FILE_BYTES = 8 * 1024 * 1024;
   var catalogs = { en: {}, ru: {} };
   var currentPreference = 'system';
+  var persistedPreference = 'system';
   var currentState = {};
   var t = i18n.createTranslator(catalogs, 'en');
 
@@ -150,7 +151,8 @@
   function refresh() {
     return request({ type: 'verstak.capture', action: 'getState' }).then(function (state) {
       render(state);
-      applyLocale(state.settings && state.settings.language || 'system');
+      persistedPreference = i18n.normalizePreference(state.settings && state.settings.language || 'system');
+      applyLocale(persistedPreference);
       return state;
     }).catch(function (error) {
       reportError('error.loadState', 'Could not load the extension state. Please try again.', error);
@@ -176,6 +178,7 @@
       settings: currentSettings()
     }).then(function (state) {
       render(state);
+      persistedPreference = currentPreference;
       if (successMessage) setStatus(t('status.saved', null, 'Saved'));
       return state;
     }).catch(function (error) {
@@ -232,8 +235,19 @@
   });
 
   languageSelectEl.addEventListener('change', function () {
-    applyLocale(languageSelectEl.value);
-    saveCurrentSettings(true);
+    var nextPreference = i18n.normalizePreference(languageSelectEl.value);
+    applyLocale(nextPreference);
+    languageSelectEl.disabled = true;
+    request({ type: 'verstak.capture', action: 'saveLanguage', language: nextPreference }).then(function () {
+      persistedPreference = nextPreference;
+      currentState.settings = Object.assign({}, currentState.settings || {}, { language: nextPreference });
+      setStatus(t('status.saved', null, 'Saved'));
+    }).catch(function (error) {
+      applyLocale(persistedPreference);
+      reportError('error.saveSettings', 'Could not save settings. Please try again.', error);
+    }).then(function () {
+      languageSelectEl.disabled = false;
+    });
   });
 
   document.getElementById('save-settings').addEventListener('click', function () {
