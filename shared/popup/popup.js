@@ -6,20 +6,13 @@
   var statusEl = document.getElementById('status');
   var receiverStateEl = document.getElementById('receiver-state');
   var receiverUrlEl = document.getElementById('receiver-url');
-  var receiverInputEl = document.getElementById('receiver-input');
-  var receiverTokenInputEl = document.getElementById('receiver-token-input');
-  var languageSelectEl = document.getElementById('language-select');
   var fileInputEl = document.getElementById('file-input');
   var pendingCountEl = document.getElementById('pending-count');
   var pendingActivityCountEl = document.getElementById('activity-pending-count');
   var statusDotEl = document.getElementById('status-dot');
-  var passiveActivityEnabledEl = document.getElementById('passive-activity-enabled');
-  var passiveActivityExclusionsEl = document.getElementById('passive-activity-exclusions');
   var MAX_FILE_TEXT_LENGTH = 2 * 1024 * 1024;
   var MAX_FILE_BYTES = 8 * 1024 * 1024;
   var catalogs = { en: {}, ru: {} };
-  var currentPreference = 'system';
-  var persistedPreference = 'system';
   var currentState = {};
   var t = i18n.createTranslator(catalogs, 'en');
 
@@ -30,20 +23,11 @@
     'activity-pending-label': 'label.activityPending',
     'url-label': 'label.url',
     'file-label': 'label.file',
-    'receiver-url-label': 'label.receiverUrl',
-    'receiver-token-label': 'label.pairingToken',
-    'language-label': 'label.language',
     'capture-page': 'action.sendPage',
     'capture-file': 'action.sendFile',
     retry: 'action.retryPending',
-    'save-settings': 'action.save',
-    'context-menu-hint': 'hint.contextMenu',
-    'language-system-option': 'language.system',
-    'language-en-option': 'language.en',
-    'language-ru-option': 'language.ru',
-    'passive-activity-label': 'label.passiveActivity',
-    'passive-activity-disclosure': 'hint.passiveActivityDisclosure',
-    'passive-activity-exclusions-label': 'label.passiveActivityExclusions'
+    'open-settings': 'action.settings',
+    'context-menu-hint': 'hint.contextMenu'
   };
 
   function browserLocale() {
@@ -83,11 +67,9 @@
   }
 
   function applyLocale(preference) {
-    currentPreference = i18n.normalizePreference(preference);
-    var locale = i18n.resolveLocale(currentPreference, browserLocale());
+    var locale = i18n.resolveLocale(i18n.normalizePreference(preference), browserLocale());
     t = i18n.createTranslator(catalogs, locale);
     document.documentElement.lang = locale;
-    languageSelectEl.value = currentPreference;
     Object.keys(staticText).forEach(function (id) {
       var element = document.getElementById(id);
       if (element) {
@@ -137,52 +119,16 @@
     pendingCountEl.textContent = String(currentState.pendingCount || 0);
     pendingActivityCountEl.textContent = String(currentState.pendingActivityCount || 0);
     receiverUrlEl.textContent = settings.receiverUrl || '';
-    if (document.activeElement !== receiverInputEl) receiverInputEl.value = settings.receiverUrl || '';
-    if (document.activeElement !== receiverTokenInputEl) receiverTokenInputEl.value = settings.receiverToken || '';
-    passiveActivityEnabledEl.checked = settings.passiveActivityEnabled === true;
-    if (document.activeElement !== passiveActivityExclusionsEl) {
-      passiveActivityExclusionsEl.value = Array.isArray(settings.passiveActivityExcludedDomains)
-        ? settings.passiveActivityExcludedDomains.join('\n')
-        : '';
-    }
     applyReceiverState(currentState);
   }
 
   function refresh() {
     return request({ type: 'verstak.capture', action: 'getState' }).then(function (state) {
       render(state);
-      persistedPreference = i18n.normalizePreference(state.settings && state.settings.language || 'system');
-      applyLocale(persistedPreference);
+      applyLocale(state.settings && state.settings.language || 'system');
       return state;
     }).catch(function (error) {
       reportError('error.loadState', 'Could not load the extension state. Please try again.', error);
-    });
-  }
-
-  function currentSettings() {
-    return {
-      receiverUrl: receiverInputEl.value.trim(),
-      receiverToken: receiverTokenInputEl.value.trim(),
-      language: currentPreference,
-      passiveActivityEnabled: passiveActivityEnabledEl.checked === true,
-      passiveActivityExcludedDomains: passiveActivityExclusionsEl.value.split(/[\n,]/).map(function (value) {
-        return value.trim();
-      }).filter(Boolean)
-    };
-  }
-
-  function saveCurrentSettings(successMessage) {
-    return request({
-      type: 'verstak.capture',
-      action: 'saveSettings',
-      settings: currentSettings()
-    }).then(function (state) {
-      render(state);
-      persistedPreference = currentPreference;
-      if (successMessage) setStatus(t('status.saved', null, 'Saved'));
-      return state;
-    }).catch(function (error) {
-      reportError('error.saveSettings', 'Could not save settings. Please try again.', error);
     });
   }
 
@@ -234,28 +180,12 @@
     send({ type: 'verstak.capture', action: 'retryPending' });
   });
 
-  languageSelectEl.addEventListener('change', function () {
-    var nextPreference = i18n.normalizePreference(languageSelectEl.value);
-    applyLocale(nextPreference);
-    languageSelectEl.disabled = true;
-    request({ type: 'verstak.capture', action: 'saveLanguage', language: nextPreference }).then(function () {
-      persistedPreference = nextPreference;
-      currentState.settings = Object.assign({}, currentState.settings || {}, { language: nextPreference });
-      setStatus(t('status.saved', null, 'Saved'));
+  document.getElementById('open-settings').addEventListener('click', function () {
+    Promise.resolve().then(function () {
+      return ext.runtime.openOptionsPage();
     }).catch(function (error) {
-      applyLocale(persistedPreference);
-      reportError('error.saveSettings', 'Could not save settings. Please try again.', error);
-    }).then(function () {
-      languageSelectEl.disabled = false;
+      reportError('error.openSettings', 'Could not open extension settings.', error);
     });
-  });
-
-  document.getElementById('save-settings').addEventListener('click', function () {
-    if (!/^https?:\/\//.test(receiverInputEl.value.trim())) {
-      setStatus(t('error.invalidReceiverUrl', null, 'Receiver URL must start with http:// or https://'));
-      return;
-    }
-    saveCurrentSettings(true);
   });
 
   loadCatalogs().then(function (loadedCatalogs) {

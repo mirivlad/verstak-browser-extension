@@ -37,6 +37,11 @@ Build output:
 Load `dist/chromium` as an unpacked extension in Chromium-based browsers, or
 load `dist/firefox` temporarily in Firefox during development.
 
+The popup contains receiver status and quick capture actions. Use its
+**Settings** button (or the browser's extension manager) to open the full
+settings page for the local receiver URL, pairing token, language, and optional
+activity tracking with excluded domains.
+
 ## Passive page activity
 
 Passive tracking is **off by default**. On first use the extension explains

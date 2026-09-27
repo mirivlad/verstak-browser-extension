@@ -17,10 +17,10 @@ class Element {
 
 const ids = [
   'status', 'receiver-state', 'receiver-url', 'receiver-input', 'receiver-token-input',
-  'language-select', 'file-input', 'pending-count', 'status-dot', 'subtitle',
+  'language-select', 'file-input', 'pending-count', 'activity-pending-count', 'status-dot', 'subtitle',
   'receiver-label', 'pending-label', 'url-label', 'file-label', 'receiver-url-label',
   'receiver-token-label', 'language-label', 'capture-page', 'capture-file', 'retry',
-  'save-settings', 'context-menu-hint', 'language-system-option', 'language-en-option',
+  'save-settings', 'open-settings', 'context-menu-hint', 'language-system-option', 'language-en-option',
   'language-ru-option',
 ];
 const elements = Object.fromEntries(ids.map((id) => [id, new Element()]));

@@ -1,0 +1,51 @@
+.options-root {
+  display: grid;
+  gap: 16px;
+  box-sizing: border-box;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.options-root h1 {
+  font-size: 20px;
+}
+
+.options-root h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.options-root header .hint,
+.options-root .settings .hint {
+  margin: 8px 0 12px;
+}
+
+.options-root .settings label:not(.tracking-toggle) {
+  display: block;
+  margin-top: 12px;
+}
+
+.save-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.save-row button {
+  min-width: 140px;
+  border-color: #059669;
+  background: #065f46;
+}
+
+@media (max-width: 480px) {
+  .options-root {
+    padding: 14px;
+  }
+
+  .save-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

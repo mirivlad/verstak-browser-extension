@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Verstak Bridge — Settings</title>
+    <link rel="stylesheet" href="../popup/popup.css">
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <main class="options-root">
+      <header>
+        <h1 id="options-title">Verstak Bridge settings</h1>
+        <p id="options-description" class="hint">Connection and optional activity tracking.</p>
+      </header>
+
+      <section class="settings" aria-labelledby="connection-title">
+        <h2 id="connection-title">Connection</h2>
+        <label id="receiver-url-label" for="receiver-input">Receiver URL</label>
+        <input id="receiver-input" type="url" spellcheck="false">
+        <label id="receiver-token-label" for="receiver-token-input">Pairing token</label>
+        <input id="receiver-token-input" type="password" spellcheck="false" autocomplete="off">
+      </section>
+
+      <section class="settings tracking-settings" aria-labelledby="activity-title">
+        <h2 id="activity-title">Activity tracking</h2>
+        <label class="tracking-toggle" for="passive-activity-enabled">
+          <input id="passive-activity-enabled" type="checkbox">
+          <span id="passive-activity-label">Track time on the active page</span>
+        </label>
+        <p id="passive-activity-disclosure" class="hint">Optional. Records the active page address without its fragment and time spent there. Excluded domains are not recorded.</p>
+        <label id="passive-activity-exclusions-label" for="passive-activity-exclusions">Excluded domains</label>
+        <textarea id="passive-activity-exclusions" rows="5" spellcheck="false" placeholder="youtube.com"></textarea>
+      </section>
+
+      <section class="settings" aria-labelledby="language-label">
+        <label id="language-label" for="language-select">Language</label>
+        <select id="language-select">
+          <option id="language-system-option" value="system">System</option>
+          <option id="language-en-option" value="en">English</option>
+          <option id="language-ru-option" value="ru">Русский</option>
+        </select>
+        <p id="language-hint" class="hint">Language changes are saved immediately.</p>
+      </section>
+
+      <div class="save-row">
+        <p id="status" role="status" aria-live="polite"></p>
+        <button id="save-settings">Save settings</button>
+      </div>
+    </main>
+    <script src="../i18n.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

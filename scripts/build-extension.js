@@ -31,6 +31,13 @@ function copyPopup(destRoot) {
   }
 }
 
+function copyOptions(destRoot) {
+  const optionsDir = path.join(shared, 'options');
+  for (const name of ['options.html', 'options.css', 'options.js']) {
+    copy(path.join(optionsDir, name), path.join(destRoot, 'options', name));
+  }
+}
+
 function copyIcons(destRoot) {
   const iconsDir = path.join(shared, 'icons');
   for (const name of ['icon16.png', 'icon48.png', 'icon128.png']) {
@@ -60,6 +67,7 @@ concat([
   path.join(shared, 'background.js'),
 ], path.join(chromiumDist, 'background.js'));
 copyPopup(chromiumDist);
+copyOptions(chromiumDist);
 copyIcons(chromiumDist);
 copyLocalization(chromiumDist);
 
@@ -70,6 +78,7 @@ for (const name of ['hostname.js', 'activity-tracker.js', 'protocol.js', 'api.js
   copy(path.join(shared, name), path.join(firefoxDist, name));
 }
 copyPopup(firefoxDist);
+copyOptions(firefoxDist);
 copyIcons(firefoxDist);
 copyLocalization(firefoxDist);
 
