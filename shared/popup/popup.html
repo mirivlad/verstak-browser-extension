@@ -38,35 +38,12 @@
         <button id="capture-page">Send Page</button>
         <button id="capture-file">Send File</button>
         <button id="retry">Retry Pending</button>
+        <button id="open-settings">Settings</button>
       </section>
 
       <section class="file-picker">
         <label id="file-label" for="file-input">File</label>
         <input id="file-input" type="file">
-      </section>
-
-      <section class="settings">
-        <label id="receiver-url-label" for="receiver-input">Receiver URL</label>
-        <input id="receiver-input" type="url" spellcheck="false">
-        <label id="receiver-token-label" for="receiver-token-input">Pairing token</label>
-        <input id="receiver-token-input" type="password" spellcheck="false" autocomplete="off">
-        <label id="language-label" for="language-select">Language</label>
-        <select id="language-select">
-          <option id="language-system-option" value="system">System</option>
-          <option id="language-en-option" value="en">English</option>
-          <option id="language-ru-option" value="ru">Русский</option>
-        </select>
-        <button id="save-settings" class="secondary">Save</button>
-      </section>
-
-      <section class="settings tracking-settings">
-        <label class="tracking-toggle" for="passive-activity-enabled">
-          <input id="passive-activity-enabled" type="checkbox">
-          <span id="passive-activity-label">Track active domain time</span>
-        </label>
-        <p id="passive-activity-disclosure" class="hint">Optional. Collects only the active domain and time spent there. It never sends page URLs, titles, text, keystrokes, or page contents.</p>
-        <label id="passive-activity-exclusions-label" for="passive-activity-exclusions">Excluded domains</label>
-        <textarea id="passive-activity-exclusions" rows="3" spellcheck="false" placeholder="youtube.com"></textarea>
       </section>
 
       <p id="context-menu-hint" class="hint">Selection and link captures are available from the page context menu.</p>

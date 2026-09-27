@@ -1,10 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Verstak Bridge",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Send pages, selections, links, and files to the local Verstak browser inbox.",
   "author": "Verstak",
   "homepage_url": "https://github.com/mirivlad/verstak-browser-extension",
+  "options_ui": { "page": "options/options.html", "open_in_tab": true },
   "permissions": ["alarms", "contextMenus", "idle", "storage", "tabs", "windows"],
   "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
   "background": {
